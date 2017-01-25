@@ -1,0 +1,60 @@
+#!/bin/bash
+set -e -x
+
+export PATH="/var/vcap/packages/dynatrace-oneagent:$PATH"
+
+export PROXY=<%= properties.dynatrace.proxy %>
+export DOWNLOADURL=<%= properties.dynatrace.downloadurl %>
+export PROCESSHOOKING=<%= properties.dynatrace.processhooking %>
+export APP_LOG_CONTENT_ACCESS=<%= properties.dynatrace.applogaccess %>
+
+ARGS=""
+if [ "$PROXY" != "" ]; then
+  ARGS="$ARGS PROXY=$PROXY"
+fi
+if [ "$PROCESSHOOKING" != "" ]; then
+  ARGS="$ARGS PROCESSHOOKING=$PROCESSHOOKING"
+fi
+if [ "$APP_LOG_CONTENT_ACCESS" != "" ]; then
+  ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
+fi
+
+
+RUN_DIR=/var/vcap/sys/run/dynatrace-oneagent
+LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
+mkdir -p ${RUN_DIR} ${LOG_DIR}
+
+
+getWatchdogPid() {
+        local AGENT_BIN=oneagentos
+        local AGENT_WATCHDOG=oneagentwatchdog
+
+        # grep -v "grep" is required, because ps -ef returns also "grep '${AGENT_WATCHDOG}.*${AGENT_BIN}"' process
+        # grep -v "sudo" it is enough to use "direct" watchdog pids, filter sudo calls with watchdog params.
+        ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
+}
+
+
+if [ ! -d /opt/dynatrace/oneagent ]; then
+   curl -L -o /tmp/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
+   chmod 755 /tmp/Dynatrace-OneAgent-Linux.sh
+   sh /tmp/Dynatrace-OneAgent-Linux.sh $ARGS >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
+fi
+
+case $1 in
+  start)
+    pid=$(getWatchdogPid)
+    # If the watchdog was stopped or rolled over...
+    if [ "$pid" == "" ]; then
+      curl -L -o /tmp/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
+      chmod 755 /tmp/Dynatrace-OneAgent-Linux.sh
+      sh /tmp/Dynatrace-OneAgent-Linux.sh $ARGS >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
+      pid=$(getWatchdogPid)
+    fi
+    echo $pid > ${RUN_DIR}/dynatrace-watchdog.pid
+    ;;
+
+  stop)
+    sh /opt/dynatrace/oneagent/agent/uninstall.sh
+    ;;
+esac

@@ -1,0 +1,17 @@
+---
+name: dynatrace-oneagent
+templates:
+  dynatrace-oneagent.sh.erb: bin/dynatrace-oneagent.sh
+
+packages:
+- dynatrace-oneagent
+
+properties:
+  dynatrace.downloadurl:
+    description: 'Download URL for OneAgent'
+  dynatrace.proxy:
+    description: 'Proxy for Server'
+  dynatrace.processhooking:
+    description: 'Enable deep monitoring'
+  dynatrace.applogaccess:
+    description: 'Enable access to discovered application log files content'

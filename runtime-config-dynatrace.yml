@@ -1,0 +1,16 @@
+releases:
+- name: dynatrace-oneagent
+  version: 0.1
+
+addons:
+- name: dynatrace-oneagent
+  jobs:
+  - name: dynatrace-oneagent
+    release: dynatrace-oneagent
+
+  properties:
+    dynatrace:
+      downloadurl: https://<environmentid>.live.dynatrace.com/installer/agent/unix/latest/<token>
+      processhooking: 1
+      proxy:
+      applogaccess: 1

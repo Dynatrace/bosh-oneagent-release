@@ -1,0 +1,52 @@
+---
+name: dynatrace-oneagent
+director_uuid: 6da39200-116d-4af2-9b71-d3e615a13074
+
+releases:
+  - name: dynatrace-oneagent
+    version: latest
+
+stemcells:
+ - alias: default
+   os: ubuntu-trusty
+   version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 32
+  canary_watch_time: 1000-300000
+  update_watch_time: 1000-300000
+  serial: false
+
+instance_groups:
+  - name: dynatrace-test-job
+    instances: 0
+    jobs:
+      - name: dynatrace-test-job
+        release: dynatrace-oneagent
+    vm_type: default
+    stemcell: default
+    persistent_disk_type: default
+    azs:
+      - default
+    networks:
+      - name: public
+  - name: dynatrace-agent
+    instances: 0
+    jobs:
+      - name: dynatrace-agent
+        release: dynatrace-agent
+    vm_type: default
+    azs:
+      - default
+    stemcell: default
+    networks:
+      - name: default
+
+properties:
+  dynatrace:
+    downloadurl: https://<environmentid>.live.dynatrace.com/installer/agent/unix/latest/<token>
+    processhooking: 1
+    proxy:
+    applogaccess: 1
+    test_message: Test Deployment of Dynatrace OneAgent
