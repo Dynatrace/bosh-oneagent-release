@@ -7,6 +7,7 @@ export PROXY=<%= properties.dynatrace.proxy %>
 export DOWNLOADURL=<%= properties.dynatrace.downloadurl %>
 export PROCESSHOOKING=<%= properties.dynatrace.processhooking %>
 export APP_LOG_CONTENT_ACCESS=<%= properties.dynatrace.applogaccess %>
+export TMPDIR=/var/vcap/data/tmp
 
 ARGS=""
 if [ "$PROXY" != "" ]; then
@@ -25,6 +26,18 @@ LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
 mkdir -p ${RUN_DIR} ${LOG_DIR}
 
 
+getInstallDir() {
+        local INSTALL_DIR="/opt/dynatrace/oneagent"
+
+        if [ -d /var/vcap/store ] && [ $(df --output=avail -m /var/vcap/store | sed 1d) -gt 2048 ]; then
+          INSTALL_DIR="/var/vcap/store/dynatrace/oneagent"
+        elif [ -d /var/vcap/data ] && [ $(df --output=avail -m /var/vcap/data | sed 1d) -gt 2048 ]; then
+          INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
+        fi
+
+        echo ${INSTALL_DIR}
+}
+
 getWatchdogPid() {
         local AGENT_BIN=oneagentos
         local AGENT_WATCHDOG=oneagentwatchdog
@@ -34,11 +47,13 @@ getWatchdogPid() {
         ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
 }
 
-
+# /opt/dynatrace/oneagent will always exist if oneagent installed
 if [ ! -d /opt/dynatrace/oneagent ]; then
-   curl -L -o /tmp/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
-   chmod 755 /tmp/Dynatrace-OneAgent-Linux.sh
-   sh /tmp/Dynatrace-OneAgent-Linux.sh $ARGS >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
+   mkdir -p $TMPDIR
+   curl -L -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
+   chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh
+   install_path=$(getInstallDir)
+   sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
 fi
 
 case $1 in
@@ -46,9 +61,11 @@ case $1 in
     pid=$(getWatchdogPid)
     # If the watchdog was stopped or rolled over...
     if [ "$pid" == "" ]; then
-      curl -L -o /tmp/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
-      chmod 755 /tmp/Dynatrace-OneAgent-Linux.sh
-      sh /tmp/Dynatrace-OneAgent-Linux.sh $ARGS >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
+      mkdir -p $TMPDIR
+      curl -L -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
+      chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh
+      install_path=$(getInstallDir)
+      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
       pid=$(getWatchdogPid)
     fi
     echo $pid > ${RUN_DIR}/dynatrace-watchdog.pid
