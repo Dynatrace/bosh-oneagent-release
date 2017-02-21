@@ -47,32 +47,36 @@ getWatchdogPid() {
         ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
 }
 
-# /opt/dynatrace/oneagent will always exist if oneagent installed
-if [ ! -d /opt/dynatrace/oneagent ]; then
-   mkdir -p $TMPDIR
-   curl -L -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
-   chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh
-   install_path=$(getInstallDir)
-   sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
-fi
-
 case $1 in
   start)
     pid=$(getWatchdogPid)
     # If the watchdog was stopped or rolled over...
     if [ "$pid" == "" ]; then
       mkdir -p $TMPDIR
-      curl -L -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
+      curl -L -k -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
       chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh
       install_path=$(getInstallDir)
       sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
+
+      if pgrep -x "guardian" > /dev/null
+      then
+        /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x guardian` --garden &
+      fi
       pid=$(getWatchdogPid)
     fi
     echo $pid > ${RUN_DIR}/dynatrace-watchdog.pid
     ;;
 
   stop)
-    sh /opt/dynatrace/oneagent/agent/uninstall.sh
+    if [ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]; then
+       sh /opt/dynatrace/oneagent/agent/uninstall.sh
+    fi
+    if pgrep -x "oneagenthelper" > /dev/null
+    then
+      pkill -x oneagenthelper
+    fi
+
     rm -rf /opt/dynatrace/oneagent
+#    unlink /opt/dynatrace/oneagent
     ;;
 esac
