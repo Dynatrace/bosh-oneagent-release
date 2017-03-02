@@ -7,7 +7,9 @@ addons:
   jobs:
   - name: dynatrace-oneagent
     release: dynatrace-oneagent
-
+  include:
+    stemcell:
+      - os: ubuntu-trusty
   properties:
     dynatrace:
       downloadurl: https://<environmentid>.live.dynatrace.com/installer/agent/unix/latest/<token>

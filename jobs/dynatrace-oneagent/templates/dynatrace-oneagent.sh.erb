@@ -56,6 +56,7 @@ case $1 in
       curl -L -k -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
       chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh
       install_path=$(getInstallDir)
+
       sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
 
       if pgrep -x "guardian" > /dev/null
@@ -77,6 +78,5 @@ case $1 in
     fi
 
     rm -rf /opt/dynatrace/oneagent
-#    unlink /opt/dynatrace/oneagent
     ;;
 esac
