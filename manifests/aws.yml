@@ -1,0 +1,39 @@
+---
+name: dt-test
+director_uuid: 43ffa652-da66-49ab-80f3-1c267d05e6c1
+
+releases:
+  - name: dynatrace-oneagent
+    version: 0.2.2
+
+stemcells:
+ - alias: ubuntu-trusty
+   os: ubuntu-trusty
+   version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 32
+  canary_watch_time: 1000-300000
+  update_watch_time: 1000-300000
+  serial: false
+
+instance_groups:
+  - name: dynatrace-test-job
+    instances: 1
+    jobs:
+      - name: dynatrace-oneagent
+        release: dynatrace-oneagent
+    vm_type: 'm3.medium'
+    stemcell: ubuntu-trusty
+    persistent_disk_type: '10240'
+    azs:
+      - eu-west-1a
+    networks:
+      - name: pcf
+
+    properties:
+      dynatrace:
+        downloadurl: https://<environmentid>.live.dynatrace.com/installer/agent/unix/latest/<token>
+        environmentid: abc12345
+        apitoken: bvQ0e--secret--2fEL9B

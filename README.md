@@ -13,14 +13,10 @@ bosh target <YOUR_BOSH_HOST>
 bosh upload release path/to/built/dynatrace-oneagent.tgz
 ```
 
-Update the bosh-director's runtime-config. You will need to modify the `runtime-config-dynatrace.yml` to suit your needs.
+Update the bosh-director's runtime-config. You will need to modify the `runtime-config-dynatrace.yml` to suit your needs. You will find your credentials information in your Dyntrace UI.
 
-Change `version` of the release and replace the `downloadurl` property with your installer URL.
 
 ```
-# replace version and downloadurl
-vi runtime-config-dynatrace.yml
-
 bosh update runtime-config runtime-config-dynatrace.yml
 ```
 

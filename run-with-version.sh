@@ -1,5 +1,5 @@
 # Change me
-VERSION=0.2.1
+VERSION=0.2.2
 
 bosh deployment dynatrace-oneagent-deployment-manifest.yml
 bosh -n delete deployment dynatrace-oneagent

@@ -1,7 +1,0 @@
-check process dynatrace-test-job
-  with pidfile /var/vcap/sys/run/dynatrace-test-job/dynatrace-test-job.pid
-  start program "/var/vcap/jobs/dynatrace-test-job/bin/dynatrace-test-job.sh start"
-    with timeout 600 seconds
-  stop program "/var/vcap/jobs/dynatrace-test-job/bin/dynatrace-test-job.sh stop"
-    with timeout 120 seconds
-  group vcap

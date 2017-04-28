@@ -1,17 +1,29 @@
 ---
 name: dynatrace-oneagent
+description: "This is a job that will run Dynatrace installer for Linux"
+
 templates:
   dynatrace-oneagent.sh.erb: bin/dynatrace-oneagent.sh
 
 packages:
-- dynatrace-oneagent
 
 properties:
+  dynatrace.environmentid:
+    description: 'Dynatrace environment ID'
+  dynatrace.apitoken:
+    description: 'API token'
+  dynatrace.apiurl:
+    description: 'URL to Dynatrace API endpoint'
+    default: ''
+  dynatrace.sslmode:
+    description: 'SSL mode (ALL) to accept self-signed SSL certs'
+    default: ''
   dynatrace.downloadurl:
-    description: 'Download URL for OneAgent'
+    description: 'Download URL for direct download'
+    default: ''
   dynatrace.proxy:
-    description: 'Proxy for Server'
-  dynatrace.processhooking:
-    description: 'Enable deep monitoring'
+    description: 'Proxy for server communication'
+    default: ''
   dynatrace.applogaccess:
     description: 'Enable access to discovered application log files content'
+    default: '1'

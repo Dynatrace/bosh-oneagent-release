@@ -1,7 +1,0 @@
----
-name: dynatrace-oneagent
-
-dependencies:
-
-files:
-- dynatrace-oneagent/placeholder
