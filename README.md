@@ -2,7 +2,7 @@
 
 This is a [BOSH](http://bosh.io/) release for [Dynatrace](https://www.dynatrace.com/).
 
-This release installs Dynatrace OneAgent on BOSH managed VMs. It is intended to be used as BOSH addon for rolling out Dynatrace OneAgent all VMs, including Linux and Windows Diego cells. 
+This release installs Dynatrace OneAgent on BOSH managed VMs. It is intended to be used as BOSH addon for rolling out Dynatrace OneAgent to all VMs, including Linux and Windows Diego cells. 
 
 ## Usage
 
