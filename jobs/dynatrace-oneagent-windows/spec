@@ -1,9 +1,10 @@
 ---
-name: dynatrace-oneagent
-description: "This is a job that will run Dynatrace OneAgent installer for Linux"
-
+name: dynatrace-oneagent-windows
+description: "This is a job that will run Dynatrace OneAgent installer for Windows"
 templates:
-  dynatrace-oneagent.sh.erb: bin/dynatrace-oneagent.sh
+  pre-start.ps1: bin/pre-start.ps1
+  start.ps1: bin/start.ps1
+  drain.ps1: bin/drain.ps1
 
 packages:
 

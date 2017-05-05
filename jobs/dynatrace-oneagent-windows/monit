@@ -1,0 +1,9 @@
+{
+  "processes": [
+    {
+      "name": "dynatrace-oneagent-windows",
+      "executable": "powershell",
+      "args": [ "/var/vcap/jobs/dynatrace-oneagent-windows/bin/start.ps1" ]
+    }
+  ]
+}
