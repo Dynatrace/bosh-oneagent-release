@@ -10,6 +10,7 @@ export API_TOKEN=<%= properties.dynatrace.apitoken %>
 export API_URL=<%= properties.dynatrace.apiurl %>
 export SSL_MODE=<%= properties.dynatrace.sslmode %>
 export APP_LOG_CONTENT_ACCESS=<%= properties.dynatrace.applogaccess %>
+export START_HELPER=<%= properties.dynatrace.starthelper %>
 
 export TMPDIR=/var/vcap/data/tmp
 
@@ -65,6 +66,27 @@ getWatchdogPid() {
         ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
 }
 
+startOneAgentHelper() {
+  #gdn is the daemon for garden-runc >= 1.2.0
+  if pgrep -x "gdn" > /dev/null
+  then
+    /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x gdn` --garden &
+  fi
+
+  #guardian is the daemon for garden-runc < 1.2.0
+  if pgrep -x "guardian" > /dev/null
+  then
+    /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x guardian` --garden &
+  fi
+}
+
+stopOneAgentHelper() {
+  if pgrep -x "oneagenthelper" > /dev/null
+  then
+    pkill -x oneagenthelper
+  fi
+}
+
 case $1 in
   start)
     pid=$(getWatchdogPid)
@@ -77,9 +99,9 @@ case $1 in
 
       sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
 
-      if pgrep -x "guardian" > /dev/null
-      then
-        /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x guardian` --garden &
+      # Start oneagenthelper manually
+      if [ "x$START_HELPER" != "x0" ]; then
+        startOneAgentHelper
       fi
       pid=$(getWatchdogPid)
     fi
@@ -90,9 +112,9 @@ case $1 in
     if [ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]; then
        sh /opt/dynatrace/oneagent/agent/uninstall.sh
     fi
-    if pgrep -x "oneagenthelper" > /dev/null
-    then
-      pkill -x oneagenthelper
+    # Stop oneagenthelper
+    if [ "x$START_HELPER" != "x0" ]; then
+      stopOneAgentHelper
     fi
 
     rm -rf /opt/dynatrace/oneagent

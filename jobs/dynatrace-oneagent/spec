@@ -27,3 +27,6 @@ properties:
   dynatrace.applogaccess:
     description: 'Enable access to discovered application log files content'
     default: '1'
+  dynatrace.starthelper:
+    description: 'Temporary switch for starting oneagenthelper from bosh job'
+    default: '0'

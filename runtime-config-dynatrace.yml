@@ -1,6 +1,6 @@
 releases:
 - name: dynatrace-oneagent
-  version: 0.3.0
+  version: 0.3.1
 
 addons:
 - name: dynatrace-oneagent-addon
@@ -15,6 +15,7 @@ addons:
     dynatrace:
       environmentid: abc12345
       apitoken: bvQ0e--secret--2fEL9B
+      starthelper: 1
 #      apiurl: https://abc12345.sprint.dynatracelabs.com/api
 
 - name: dynatrace-oneagent-windows-addon
