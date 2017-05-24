@@ -16,7 +16,7 @@ properties:
     description: 'URL to Dynatrace API endpoint'
     default: ''
   dynatrace.sslmode:
-    description: 'SSL mode (ALL) to accept self-signed SSL certs'
+    description: 'SSL mode (all) to accept self-signed SSL certs'
     default: ''
   dynatrace.downloadurl:
     description: 'Download URL for direct download'

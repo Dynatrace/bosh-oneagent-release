@@ -14,6 +14,12 @@ export START_HELPER=<%= properties.dynatrace.starthelper %>
 
 export TMPDIR=/var/vcap/data/tmp
 
+RUN_DIR=/var/vcap/sys/run/dynatrace-oneagent
+LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
+LOG_FILE=$LOG_DIR/dynatrace-install.log
+mkdir -p ${RUN_DIR} ${LOG_DIR}
+
+
 ARGS=""
 if [ "$PROXY" != "" ]; then
   ARGS="$ARGS PROXY=$PROXY"
@@ -26,8 +32,8 @@ fi
 # set downloadurl if not given
 if [ "$DOWNLOADURL" == "" ]; then
   if [ "x$ENV_ID" == "x" ] && [ "x$API_TOKEN" == "x" ]; then
-    echo "Invalid configuration:"
-    echo "Please set environment ID and API token for Dynatrace OneAgent."
+    echo "Invalid configuration:" >> $LOG_FILE
+    echo "Please set environment ID and API token for Dynatrace OneAgent." >> $LOG_FILE
     exit 1
   fi
   if [ "x$API_URL" == "x" ]; then
@@ -38,14 +44,9 @@ fi
 
 SSL_FLAG=""
 if [ "$SSL_MODE" == "all" ]; then
-  echo "accepting all ssl certificates for agent download"
+  echo "accepting all ssl certificates for agent download" >> $LOG_FILE
   SSL_FLAG="--insecure"
 fi
-
-RUN_DIR=/var/vcap/sys/run/dynatrace-oneagent
-LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
-mkdir -p ${RUN_DIR} ${LOG_DIR}
-
 
 getInstallDir() {
         local INSTALL_DIR="/opt/dynatrace/oneagent"
@@ -70,12 +71,14 @@ startOneAgentHelper() {
   #gdn is the daemon for garden-runc >= 1.2.0
   if pgrep -x "gdn" > /dev/null
   then
+    echo "Found gdn process. Starting oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
     /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x gdn` --garden &
   fi
 
   #guardian is the daemon for garden-runc < 1.2.0
   if pgrep -x "guardian" > /dev/null
   then
+    echo "Found guardian process. Starting oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
     /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x guardian` --garden &
   fi
 }
@@ -83,7 +86,8 @@ startOneAgentHelper() {
 stopOneAgentHelper() {
   if pgrep -x "oneagenthelper" > /dev/null
   then
-    pkill -x oneagenthelper
+    echo "Stopping oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
+    pkill -x oneagenthelper  >> $LOG_FILE 2>> $LOG_FILE
   fi
 }
 
@@ -93,14 +97,15 @@ case $1 in
     # If the watchdog was stopped or rolled over...
     if [ "$pid" == "" ]; then
       mkdir -p $TMPDIR
-      curl -L $SSL_FLAG -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL
-      chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh
+      curl -L $SSL_FLAG -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL >> $LOG_FILE 2>> $LOG_FILE
+      chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh >> $LOG_FILE 2>> $LOG_FILE
       install_path=$(getInstallDir)
 
-      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_DIR/dynatrace-install.log 2>> $LOG_DIR/dynatrace-install.log
+      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_FILE 2>> $LOG_FILE
 
       # Start oneagenthelper manually
       if [ "x$START_HELPER" != "x0" ]; then
+        echo "starthelper is enabled" >> $LOG_FILE 2>> $LOG_FILE
         startOneAgentHelper
       fi
       pid=$(getWatchdogPid)
@@ -110,7 +115,8 @@ case $1 in
 
   stop)
     if [ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]; then
-       sh /opt/dynatrace/oneagent/agent/uninstall.sh
+       sh /opt/dynatrace/oneagent/agent/uninstall.sh  >> $LOG_FILE 2>> $LOG_FILE
+
     fi
     # Stop oneagenthelper
     if [ "x$START_HELPER" != "x0" ]; then
