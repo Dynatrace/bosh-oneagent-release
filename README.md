@@ -2,7 +2,7 @@
 
 This is a [BOSH](http://bosh.io/) release for [Dynatrace](https://www.dynatrace.com/).
 
-This release installs Dynatrace OneAgent on BOSH managed VMs. It is intended to be used as BOSH addon for rolling out Dynatrace OneAgent to all VMs, including Linux and Windows Diego cells. 
+This release installs Dynatrace OneAgent on BOSH managed VMs. It is intended to be used as BOSH addon for rolling out Dynatrace OneAgent to all VMs, including Linux and Windows Diego cells.
 
 ## Usage
 
@@ -13,7 +13,7 @@ bosh target <YOUR_BOSH_HOST>
 bosh upload release path/to/built/dynatrace-oneagent.tgz
 ```
 
-Update the bosh-director's runtime-config. You will need to modify the `runtime-config-dynatrace.yml` to suit your needs, e.g. limit the addon to specific bosh deployments. You will find your credentials in your Dyntrace UI.
+Update the bosh-director's runtime-config. You will need to modify the `runtime-config-dynatrace.yml` to suit your needs, e.g. limit the addon to specific BOSH deployments. You will find your credentials in your Dynatrace UI.
 
 
 ```
