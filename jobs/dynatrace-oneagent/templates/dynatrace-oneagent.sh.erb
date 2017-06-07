@@ -23,6 +23,8 @@ mkdir -p ${RUN_DIR} ${LOG_DIR}
 ARGS=""
 if [ "$PROXY" != "" ]; then
   ARGS="$ARGS PROXY=$PROXY"
+  export https_proxy="$PROXY"
+  export http_proxy="$PROXY"
 fi
 
 if [ "$APP_LOG_CONTENT_ACCESS" != "" ]; then
