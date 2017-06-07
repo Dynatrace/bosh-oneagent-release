@@ -1,6 +1,6 @@
 releases:
 - name: dynatrace-oneagent
-  version: 0.3.1
+  version: 0.3.2
 
 addons:
 - name: dynatrace-oneagent-addon
@@ -8,26 +8,38 @@ addons:
   - name: dynatrace-oneagent
     release: dynatrace-oneagent
   include:
-    deployments: [cf-572413dc2a9f0ef37959]
     stemcell:
       - os: ubuntu-trusty
+  exclude:
+    jobs:
+    - {name: smoke-tests, release: cf}
+    - {name: push-apps-manager, release: push-apps-manager-release}
+    - {name: deploy-notifications, release: notifications}
+    - {name: deploy-notifications-ui, release: notifications-ui}
+    - {name: push-pivotal-account, release: pivotal-account}
+    - {name: deploy-autoscaling, release: cf-autoscaling}
+    - {name: register-broker, release: cf-autoscaling}
+    - {name: nfsbrokerpush, release: nfs-volume}
+    - {name: bootstrap, release: cf-mysql}
+    - {name: rejoin-unsafe, release: cf-mysql}
+    - {name: broker-registrar, release: cf-mysql}
+    - {name: deregister-and-purge-instances, release: cf-mysql}
+    - {name: smoke-tests, release: cf-mysql}
+    - {name: install-hwc-buildpack, release: hwc-buildpack}
   properties:
     dynatrace:
       environmentid: abc12345
       apitoken: bvQ0e--secret--2fEL9B
       starthelper: 1
-#      apiurl: https://abc12345.sprint.dynatracelabs.com/api
 
 - name: dynatrace-oneagent-windows-addon
   jobs:
   - name: dynatrace-oneagent-windows
     release: dynatrace-oneagent
   include:
-    deployments: [p-windows-runtime-8a20571b760708dcc0b9]
     stemcell:
       - os: windows2012R2
   properties:
     dynatrace:
       environmentid: abc12345
       apitoken: bvQ0e--secret--2fEL9B
-#      apiurl: https://abc12345.sprint.dynatracelabs.com/api
