@@ -93,6 +93,23 @@ stopOneAgentHelper() {
   fi
 }
 
+uninstallOneAgent(){
+  echo "Trying to uninstall the OneAgent..." >> $LOG_FILE 2>> $LOG_FILE
+  if [ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]; then
+    echo "Found uninstall script to run..." >> $LOG_FILE 2>> $LOG_FILE
+    sh /opt/dynatrace/oneagent/agent/uninstall.sh  >> $LOG_FILE 2>> $LOG_FILE
+  fi
+
+  # Stop oneagenthelper
+  if [ "x$START_HELPER" != "x0" ]; then
+    stopOneAgentHelper
+  fi
+
+  echo "Cleaning up /opt/dynatrace/oneagent..." >> $LOG_FILE 2>> $LOG_FILE
+  rm -rf /opt/dynatrace/oneagent
+}
+
+
 case $1 in
   start)
     pid=$(getWatchdogPid)
@@ -102,6 +119,11 @@ case $1 in
       curl -L $SSL_FLAG -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL >> $LOG_FILE 2>> $LOG_FILE
       chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh >> $LOG_FILE 2>> $LOG_FILE
       install_path=$(getInstallDir)
+
+      if [ -d /opt/dynatrace/oneagent ]; then
+        echo "Found leftovers in /opt/dynatrace/oneagent" >> $LOG_FILE 2>> $LOG_FILE
+        uninstallOneAgent
+      fi
 
       sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_FILE 2>> $LOG_FILE
 
@@ -116,15 +138,6 @@ case $1 in
     ;;
 
   stop)
-    if [ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]; then
-       sh /opt/dynatrace/oneagent/agent/uninstall.sh  >> $LOG_FILE 2>> $LOG_FILE
-
-    fi
-    # Stop oneagenthelper
-    if [ "x$START_HELPER" != "x0" ]; then
-      stopOneAgentHelper
-    fi
-
-    rm -rf /opt/dynatrace/oneagent
+    uninstallOneAgent
     ;;
 esac
