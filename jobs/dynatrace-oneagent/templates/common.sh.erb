@@ -1,0 +1,37 @@
+################################################################################
+#       Logs
+################################################################################
+toLog() {
+       echo "$(date -u +"%Y-%m-%d %H:%M:%S") UTC" "$@" >> ${LOG_FILE}
+}
+
+toConsoleOnly() {
+        echo "$(date +"%H:%M:%S")" "$@"
+}
+
+toLogInfo() {
+        toLog "[INFO]" "$@"
+}
+
+toLogWarning() {
+        toLog "[WARN]" "$@"
+}
+
+toLogError() {
+        toLog "[ERROR]" "$@"
+}
+
+toConsoleInfo() {
+        toConsoleOnly "$@"
+        toLogInfo "$@"
+}
+
+toConsoleWarning() {
+        toConsoleOnly "Warning:" "$@"
+        toLogWarning "$@"
+}
+
+toConsoleError() {
+        toConsoleOnly "Error:" "$@"
+        toLogError "$@"
+}

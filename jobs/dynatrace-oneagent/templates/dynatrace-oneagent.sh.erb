@@ -10,15 +10,16 @@ export API_TOKEN=<%= properties.dynatrace.apitoken %>
 export API_URL=<%= properties.dynatrace.apiurl %>
 export SSL_MODE=<%= properties.dynatrace.sslmode %>
 export APP_LOG_CONTENT_ACCESS=<%= properties.dynatrace.applogaccess %>
-export START_HELPER=<%= properties.dynatrace.starthelper %>
 
 export TMPDIR=/var/vcap/data/tmp
 
 RUN_DIR=/var/vcap/sys/run/dynatrace-oneagent
-LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
-LOG_FILE=$LOG_DIR/dynatrace-install.log
+export LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
+export LOG_FILE=$LOG_DIR/dynatrace-install.log
 mkdir -p ${RUN_DIR} ${LOG_DIR}
 
+# Source helper functions
+source /var/vcap/jobs/dynatrace-oneagent/bin/common.sh
 
 ARGS=""
 if [ "$PROXY" != "" ]; then
@@ -34,8 +35,8 @@ fi
 # set downloadurl if not given
 if [ "$DOWNLOADURL" == "" ]; then
   if [ "x$ENV_ID" == "x" ] && [ "x$API_TOKEN" == "x" ]; then
-    echo "Invalid configuration:" >> $LOG_FILE
-    echo "Please set environment ID and API token for Dynatrace OneAgent." >> $LOG_FILE
+    toLogError "Invalid configuration:" 
+    toLogError "Please set environment ID and API token for Dynatrace OneAgent." 
     exit 1
   fi
   if [ "x$API_URL" == "x" ]; then
@@ -46,7 +47,7 @@ fi
 
 SSL_FLAG=""
 if [ "$SSL_MODE" == "all" ]; then
-  echo "accepting all ssl certificates for agent download" >> $LOG_FILE
+  toLogInfo "Accepting all ssl certificates for agent download" 
   SSL_FLAG="--insecure"
 fi
 
@@ -69,69 +70,37 @@ getWatchdogPid() {
         ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
 }
 
-startOneAgentHelper() {
-  #gdn is the daemon for garden-runc >= 1.2.0
-  if pgrep -x "gdn" > /dev/null
-  then
-    echo "Found gdn process. Starting oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
-    /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x gdn` --garden &
-  fi
-
-  #guardian is the daemon for garden-runc < 1.2.0
-  if pgrep -x "guardian" > /dev/null
-  then
-    echo "Found guardian process. Starting oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
-    /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x guardian` --garden &
-  fi
-}
-
-stopOneAgentHelper() {
-  if pgrep -x "oneagenthelper" > /dev/null
-  then
-    echo "Stopping oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
-    pkill -x oneagenthelper  >> $LOG_FILE 2>> $LOG_FILE
-  fi
-}
-
 uninstallOneAgent(){
-  echo "Trying to uninstall the OneAgent..." >> $LOG_FILE 2>> $LOG_FILE
+  toLogInfo "Trying to uninstall the OneAgent..."
   if [ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]; then
-    echo "Found uninstall script to run..." >> $LOG_FILE 2>> $LOG_FILE
+    toLogInfo "Found uninstall script to run..."
     sh /opt/dynatrace/oneagent/agent/uninstall.sh  >> $LOG_FILE 2>> $LOG_FILE
   fi
 
-  # Stop oneagenthelper
-  if [ "x$START_HELPER" != "x0" ]; then
-    stopOneAgentHelper
-  fi
-
-  echo "Cleaning up /opt/dynatrace/oneagent..." >> $LOG_FILE 2>> $LOG_FILE
+  toLogInfo "Cleaning up /opt/dynatrace/oneagent..." 
   rm -rf /opt/dynatrace/oneagent
 }
 
 
 case $1 in
   start)
+    toLogInfo "Starting installation of OneAgent..."
     pid=$(getWatchdogPid)
     # If the watchdog was stopped or rolled over...
     if [ "$pid" == "" ]; then
       mkdir -p $TMPDIR
+      toLogInfo "Downloading OneAgent..."
       curl -L $SSL_FLAG -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL >> $LOG_FILE 2>> $LOG_FILE
       chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh >> $LOG_FILE 2>> $LOG_FILE
       install_path=$(getInstallDir)
-
+      toLogInfo "Installation target: $install_path"
       if [ -d /opt/dynatrace/oneagent ]; then
-        echo "Found leftovers in /opt/dynatrace/oneagent" >> $LOG_FILE 2>> $LOG_FILE
+        toLogInfo "Found leftovers in /opt/dynatrace/oneagent"
         uninstallOneAgent
       fi
 
       sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_FILE 2>> $LOG_FILE
-
-      # Start oneagenthelper manually
-      if [ "x$START_HELPER" != "x0" ]; then
-        echo "starthelper is enabled" >> $LOG_FILE 2>> $LOG_FILE
-        startOneAgentHelper
-      fi
+      toLogInfo "Installation completed"
       pid=$(getWatchdogPid)
     fi
     echo $pid > ${RUN_DIR}/dynatrace-watchdog.pid
