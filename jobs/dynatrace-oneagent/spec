@@ -4,6 +4,7 @@ description: "This is a job that will run Dynatrace OneAgent installer for Linux
 
 templates:
   dynatrace-oneagent.sh.erb: bin/dynatrace-oneagent.sh
+  pre-start.erb: bin/pre-start
 
 packages:
 
