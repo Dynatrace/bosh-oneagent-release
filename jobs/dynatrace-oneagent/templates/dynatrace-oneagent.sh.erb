@@ -1,16 +1,18 @@
 #!/bin/bash
+
+# FIXME do we really need the '-e' here? and why?
 set -e -x
 
 export PATH="/var/vcap/packages/dynatrace-oneagent:$PATH"
 
-export DOWNLOADURL=<%= properties.dynatrace.downloadurl %>
-export PROXY=<%= properties.dynatrace.proxy %>
-export ENV_ID=<%= properties.dynatrace.environmentid %>
-export API_TOKEN=<%= properties.dynatrace.apitoken %>
-export API_URL=<%= properties.dynatrace.apiurl %>
-export SSL_MODE=<%= properties.dynatrace.sslmode %>
-export APP_LOG_CONTENT_ACCESS=<%= properties.dynatrace.applogaccess %>
-export START_HELPER=<%= properties.dynatrace.starthelper %>
+export DOWNLOADURL="<%= properties.dynatrace.downloadurl %>"
+export PROXY="<%= properties.dynatrace.proxy %>"
+export ENV_ID="<%= properties.dynatrace.environmentid %>"
+export API_TOKEN="<%= properties.dynatrace.apitoken %>"
+export API_URL="<%= properties.dynatrace.apiurl %>"
+export SSL_MODE="<%= properties.dynatrace.sslmode %>"
+export APP_LOG_CONTENT_ACCESS="<%= properties.dynatrace.applogaccess %>"
+export START_HELPER="<%= properties.dynatrace.starthelper %>"
 
 export TMPDIR=/var/vcap/data/tmp
 
@@ -44,10 +46,12 @@ if [ "$DOWNLOADURL" == "" ]; then
   DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
 fi
 
-SSL_FLAG=""
-if [ "$SSL_MODE" == "all" ]; then
+#SSL_FLAG=""
+if [[ "$SSL_MODE" == "all" ]]; then
   echo "accepting all ssl certificates for agent download" >> $LOG_FILE
-  SSL_FLAG="--insecure"
+  #SSL_FLAG="--insecure"
+  SSL_INSECURE_CURL="--insecure"
+  SSL_INSECURE_WGET="--no-check-certificate"
 fi
 
 getInstallDir() {
@@ -67,6 +71,45 @@ getWatchdogPid() {
         # grep -v "grep" is required, because ps -ef returns also "grep '${AGENT_WATCHDOG}.*${AGENT_BIN}"' process
         # grep -v "sudo" it is enough to use "direct" watchdog pids, filter sudo calls with watchdog params.
         ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
+}
+
+downloadAgent() {
+  local downloadUrl=$1
+  local installerFile=$2
+
+  if curl -h &> /dev/null ; then
+    local downloadCommand="curl -f $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile}"
+  elif wget -h &> /dev/null ; then
+    local downloadCommand="wget $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile}"
+  else
+    echo "ERROR: Neither curl nor wget executable found!"
+    exit 1
+  fi
+
+  local retryTimeout=0
+  local downloadErrors=0
+  while [[ $downloadErrors -lt 3 ]]; do
+    sleep $retryTimeout
+
+    $downloadCommand
+    if [[ $? != 0 ]]; then
+      downloadErrors=$((downloadErrors+1))
+      retryTimeout=$(($retryTimeout+5))
+
+      if [[ $downloadErrors -lt 3 ]]; then
+        installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
+      fi
+    else
+      break
+    fi
+
+  done
+
+  if [[ $downloadErrors == 3 ]]; then
+    installStatus "error" "ERROR: Downloading agent installer failed!"
+    exit 1
+  fi
+
 }
 
 startOneAgentHelper() {
@@ -116,8 +159,10 @@ case $1 in
     # If the watchdog was stopped or rolled over...
     if [ "$pid" == "" ]; then
       mkdir -p $TMPDIR
-      curl -L $SSL_FLAG -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL >> $LOG_FILE 2>> $LOG_FILE
-      chmod 755 $TMPDIR/Dynatrace-OneAgent-Linux.sh >> $LOG_FILE 2>> $LOG_FILE
+      AGENT_PATH="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
+      downloadAgent $DOWNLOADURL $AGENT_PATH
+      #curl -L $SSL_FLAG -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL >> $LOG_FILE 2>> $LOG_FILE
+      chmod 755 $AGENT_PATH >> $LOG_FILE 2>> $LOG_FILE
       install_path=$(getInstallDir)
 
       if [ -d /opt/dynatrace/oneagent ]; then
