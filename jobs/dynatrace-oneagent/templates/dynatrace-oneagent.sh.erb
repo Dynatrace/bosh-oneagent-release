@@ -65,12 +65,13 @@ getInstallDir() {
 }
 
 getWatchdogPid() {
-        local AGENT_BIN=oneagentos
+        #local AGENT_BIN=oneagentos
         local AGENT_WATCHDOG=oneagentwatchdog
 
         # grep -v "grep" is required, because ps -ef returns also "grep '${AGENT_WATCHDOG}.*${AGENT_BIN}"' process
         # grep -v "sudo" it is enough to use "direct" watchdog pids, filter sudo calls with watchdog params.
-        ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
+        #ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
+        pgrep -f "${AGENT_WATCHDOG}"
 }
 
 downloadAgent() {
