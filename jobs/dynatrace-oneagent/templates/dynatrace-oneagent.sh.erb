@@ -23,24 +23,24 @@ mkdir -p ${RUN_DIR} ${LOG_DIR}
 
 
 ARGS=""
-if [ "$PROXY" != "" ]; then
+if [[ "$PROXY" != "" ]]; then
   ARGS="$ARGS PROXY=$PROXY"
   export https_proxy="$PROXY"
   export http_proxy="$PROXY"
 fi
 
-if [ "$APP_LOG_CONTENT_ACCESS" != "" ]; then
+if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
   ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
 fi
 
 # set downloadurl if not given
-if [ "$DOWNLOADURL" == "" ]; then
+if [[ "$DOWNLOADURL" == "" ]]; then
   if [ "x$ENV_ID" == "x" ] && [ "x$API_TOKEN" == "x" ]; then
     echo "Invalid configuration:" >> $LOG_FILE
     echo "Please set environment ID and API token for Dynatrace OneAgent." >> $LOG_FILE
     exit 1
   fi
-  if [ "x$API_URL" == "x" ]; then
+  if [[ "x$API_URL" == "x" ]]; then
     API_URL="https://$ENV_ID.live.dynatrace.com/api"
   fi
   DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
@@ -57,7 +57,7 @@ fi
 getInstallDir() {
         local INSTALL_DIR="/opt/dynatrace/oneagent"
 
-        if [ -d /var/vcap/data ] && [ $(df --output=avail -m /var/vcap/data | sed 1d) -gt 2048 ]; then
+        if [[ -d /var/vcap/data ]] && [[ $(df --output=avail -m /var/vcap/data | sed 1d) -gt 2048 ]]; then
           INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
         fi
 
@@ -138,13 +138,13 @@ stopOneAgentHelper() {
 
 uninstallOneAgent(){
   echo "Trying to uninstall the OneAgent..." >> $LOG_FILE 2>> $LOG_FILE
-  if [ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]; then
+  if [[ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]]; then
     echo "Found uninstall script to run..." >> $LOG_FILE 2>> $LOG_FILE
     sh /opt/dynatrace/oneagent/agent/uninstall.sh  >> $LOG_FILE 2>> $LOG_FILE
   fi
 
   # Stop oneagenthelper
-  if [ "x$START_HELPER" != "x0" ]; then
+  if [[ "x$START_HELPER" != "x0" ]]; then
     stopOneAgentHelper
   fi
 
@@ -157,7 +157,7 @@ case $1 in
   start)
     pid=$(getWatchdogPid)
     # If the watchdog was stopped or rolled over...
-    if [ "$pid" == "" ]; then
+    if [[ "$pid" == "" ]]; then
       mkdir -p $TMPDIR
       AGENT_PATH="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
       downloadAgent $DOWNLOADURL $AGENT_PATH
@@ -165,7 +165,7 @@ case $1 in
       chmod 755 $AGENT_PATH >> $LOG_FILE 2>> $LOG_FILE
       install_path=$(getInstallDir)
 
-      if [ -d /opt/dynatrace/oneagent ]; then
+      if [[ -d /opt/dynatrace/oneagent ]]; then
         echo "Found leftovers in /opt/dynatrace/oneagent" >> $LOG_FILE 2>> $LOG_FILE
         uninstallOneAgent
       fi
@@ -173,7 +173,7 @@ case $1 in
       sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_FILE 2>> $LOG_FILE
 
       # Start oneagenthelper manually
-      if [ "x$START_HELPER" != "x0" ]; then
+      if [[ "x$START_HELPER" != "x0" ]]; then
         echo "starthelper is enabled" >> $LOG_FILE 2>> $LOG_FILE
         startOneAgentHelper
       fi
