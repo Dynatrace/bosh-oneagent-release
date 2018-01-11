@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# FIXME do we really need the '-e' here? and why?
-#set -e -x
-
 export PATH="/var/vcap/packages/dynatrace-oneagent:$PATH"
 
 export DOWNLOADURL="<%= properties.dynatrace.downloadurl %>"
@@ -19,110 +16,109 @@ export TMPDIR=/var/vcap/data/tmp
 RUN_DIR=/var/vcap/sys/run/dynatrace-oneagent
 LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
 LOG_FILE=$LOG_DIR/dynatrace-install.log
-mkdir -p ${RUN_DIR} ${LOG_DIR}
-
+if ! mkdir -p ${RUN_DIR} ${LOG_DIR}; then
+    installLog "ERROR: Creating directories ${RUN_DIR} and ${LOG_DIR} failed!"
+    exit 1
+fi
 
 ARGS=""
 if [[ "$PROXY" != "" ]]; then
-  ARGS="$ARGS PROXY=$PROXY"
-  export https_proxy="$PROXY"
-  export http_proxy="$PROXY"
+    installLog "Setting proxy to ${PROXY}"
+    ARGS="$ARGS PROXY=$PROXY"
+    export https_proxy="$PROXY"
+    export http_proxy="$PROXY"
 fi
 
 if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
-  ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
+    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
 fi
 
 # set downloadurl if not given
 if [[ "$DOWNLOADURL" == "" ]]; then
-  if [ "x$ENV_ID" == "x" ] && [ "x$API_TOKEN" == "x" ]; then
-    echo "Invalid configuration:" >> $LOG_FILE
-    echo "Please set environment ID and API token for Dynatrace OneAgent." >> $LOG_FILE
-    exit 1
-  fi
-  if [[ "x$API_URL" == "x" ]]; then
-    API_URL="https://$ENV_ID.live.dynatrace.com/api"
-  fi
-  DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
+    if [ "x$ENV_ID" == "x" ] && [ "x$API_TOKEN" == "x" ]; then
+        installLog "Invalid configuration:"
+        installLog "Please set environment ID and API token for Dynatrace OneAgent."
+        exit 1
+    fi
+    if [[ "x$API_URL" == "x" ]]; then
+        API_URL="https://$ENV_ID.live.dynatrace.com/api"
+    fi
+        DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
 fi
 
-#SSL_FLAG=""
 if [[ "$SSL_MODE" == "all" ]]; then
-  echo "accepting all ssl certificates for agent download" >> $LOG_FILE
-  #SSL_FLAG="--insecure"
-  SSL_INSECURE_CURL="--insecure"
-  SSL_INSECURE_WGET="--no-check-certificate"
+    installLog "accepting all ssl certificates for agent download"
+    SSL_INSECURE_CURL="--insecure"
+    SSL_INSECURE_WGET="--no-check-certificate"
 fi
 
 getInstallDir() {
-        local INSTALL_DIR="/opt/dynatrace/oneagent"
+    local INSTALL_DIR="/opt/dynatrace/oneagent"
 
-        if [[ -d /var/vcap/data ]] && [[ $(df --output=avail -m /var/vcap/data | sed 1d) -gt 2048 ]]; then
-          INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
-        fi
+    if [[ -d /var/vcap/data ]] && [[ $(df --output=avail -m /var/vcap/data | sed 1d) -gt 2048 ]]; then
+        INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
+    fi
 
-        echo ${INSTALL_DIR}
+    echo ${INSTALL_DIR}
 }
 
 getWatchdogPid() {
-        #local AGENT_BIN=oneagentos
-        local AGENT_WATCHDOG=oneagentwatchdog
+    #local AGENT_BIN=oneagentos
+    local AGENT_WATCHDOG=oneagentwatchdog
 
-        # grep -v "grep" is required, because ps -ef returns also "grep '${AGENT_WATCHDOG}.*${AGENT_BIN}"' process
-        # grep -v "sudo" it is enough to use "direct" watchdog pids, filter sudo calls with watchdog params.
-        #ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
-        pgrep -f "${AGENT_WATCHDOG}"
+    # grep -v "grep" is required, because ps -ef returns also "grep '${AGENT_WATCHDOG}.*${AGENT_BIN}"' process
+    # grep -v "sudo" it is enough to use "direct" watchdog pids, filter sudo calls with watchdog params.
+    #ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
+    pgrep -f "${AGENT_WATCHDOG}"
 }
 
 downloadAgent() {
-  local downloadUrl=$1
-  local installerFile=$2
+    local downloadUrl=$1
+    local installerFile=$2
 
-  if curl -h &> /dev/null ; then
-    local downloadCommand="curl -f $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile}"
-  elif wget -h &> /dev/null ; then
-    local downloadCommand="wget $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile}"
-  else
-    echo "ERROR: Neither curl nor wget executable found!"
-    exit 1
-  fi
-
-  local retryTimeout=0
-  local downloadErrors=0
-  while [[ $downloadErrors -lt 3 ]]; do
-    sleep $retryTimeout
-
-    $downloadCommand
-    if [[ $? != 0 ]]; then
-      downloadErrors=$((downloadErrors+1))
-      retryTimeout=$(($retryTimeout+5))
-
-      if [[ $downloadErrors -lt 3 ]]; then
-        installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
-      fi
+    if curl -h &> /dev/null ; then
+        local downloadCommand="curl -f $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile}"
+    elif wget -h &> /dev/null ; then
+        local downloadCommand="wget $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile}"
     else
-      break
+        installLog "ERROR: Neither curl nor wget executable found!"
+        exit 1
     fi
 
-  done
+    local retryTimeout=0
+    local downloadErrors=0
+    while [[ $downloadErrors -lt 3 ]]; do
+        sleep $retryTimeout
 
-  if [[ $downloadErrors == 3 ]]; then
-    installStatus "error" "ERROR: Downloading agent installer failed!"
-    exit 1
-  fi
+        $downloadCommand
+        if [[ $? != 0 ]]; then
+            downloadErrors=$((downloadErrors+1))
+            retryTimeout=$(($retryTimeout+5))
 
+            if [[ $downloadErrors -lt 3 ]]; then
+                installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
+            fi
+        else
+            break
+        fi
+    done
+
+    if [[ $downloadErrors == 3 ]]; then
+        installLog "ERROR: Downloading agent installer failed!"
+        exit 1
+    fi
 }
 
 startOneAgentHelper() {
   #gdn is the daemon for garden-runc >= 1.2.0
   if pgrep -x "gdn" > /dev/null
   then
-    echo "Found gdn process. Starting oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
+    installLog "Found gdn process. Starting oneagenthelper..."
     /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x gdn` --garden &
   #guardian is the daemon for garden-runc < 1.2.0
   elif pgrep -x "guardian" > /dev/null
   then
-    echo "Found guardian process. Starting oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
+    installLog "Found guardian process. Starting oneagenthelper..."
     /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x guardian` --garden &
   fi
 }
@@ -130,16 +126,17 @@ startOneAgentHelper() {
 stopOneAgentHelper() {
   if pgrep -x "oneagenthelper" > /dev/null
   then
-    echo "Stopping oneagenthelper..." >> $LOG_FILE 2>> $LOG_FILE
-    pkill -x oneagenthelper  >> $LOG_FILE 2>> $LOG_FILE
+    installLog "Stopping oneagenthelper..."
+    pkill -x oneagenthelper
+    installLog "Done"
   fi
 }
 
 uninstallOneAgent(){
-  echo "Trying to uninstall the OneAgent..." >> $LOG_FILE 2>> $LOG_FILE
+  installLog "Trying to uninstall the OneAgent..."
   if [[ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]]; then
-    echo "Found uninstall script to run..." >> $LOG_FILE 2>> $LOG_FILE
-    sh /opt/dynatrace/oneagent/agent/uninstall.sh  >> $LOG_FILE 2>> $LOG_FILE
+    installLog "Found uninstall script to run..."
+    sh /opt/dynatrace/oneagent/agent/uninstall.sh 2>&1 >> $LOG_FILE
   fi
 
   # Stop oneagenthelper
@@ -147,10 +144,13 @@ uninstallOneAgent(){
     stopOneAgentHelper
   fi
 
-  echo "Cleaning up /opt/dynatrace/oneagent..." >> $LOG_FILE 2>> $LOG_FILE
+  installLog "Cleaning up /opt/dynatrace/oneagent..."
   rm -rf /opt/dynatrace/oneagent
 }
 
+installLog() {
+    echo ${$1} | tee ${LOG_FILE}
+}
 
 case $1 in
   start)
@@ -160,20 +160,19 @@ case $1 in
       mkdir -p $TMPDIR
       AGENT_PATH="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
       downloadAgent $DOWNLOADURL $AGENT_PATH
-      #curl -L $SSL_FLAG -o $TMPDIR/Dynatrace-OneAgent-Linux.sh $DOWNLOADURL >> $LOG_FILE 2>> $LOG_FILE
-      chmod 755 $AGENT_PATH >> $LOG_FILE 2>> $LOG_FILE
+      chmod 755 $AGENT_PATH 2>&1 >> $LOG_FILE
       install_path=$(getInstallDir)
 
       if [[ -d /opt/dynatrace/oneagent ]]; then
-        echo "Found leftovers in /opt/dynatrace/oneagent" >> $LOG_FILE 2>> $LOG_FILE
+        installLog "Found leftovers in /opt/dynatrace/oneagent"
         uninstallOneAgent
       fi
 
-      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path >> $LOG_FILE 2>> $LOG_FILE
+      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path 2>&1 >> $LOG_FILE
 
       # Start oneagenthelper manually
       if [[ "x$START_HELPER" != "x0" ]]; then
-        echo "starthelper is enabled" >> $LOG_FILE 2>> $LOG_FILE
+        installLog "starthelper is enabled"
         startOneAgentHelper
       fi
       pid=$(getWatchdogPid)
