@@ -136,7 +136,7 @@ uninstallOneAgent(){
   installLog "Trying to uninstall the OneAgent..."
   if [[ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]]; then
     installLog "Found uninstall script to run..."
-    sh /opt/dynatrace/oneagent/agent/uninstall.sh 2>&1 >> $LOG_FILE
+    sh /opt/dynatrace/oneagent/agent/uninstall.sh &>> $LOG_FILE
   fi
 
   # Stop oneagenthelper
@@ -149,7 +149,7 @@ uninstallOneAgent(){
 }
 
 installLog() {
-    echo ${$1} | tee ${LOG_FILE}
+    echo "$1" | tee ${LOG_FILE}
 }
 
 case $1 in
@@ -160,7 +160,7 @@ case $1 in
       mkdir -p $TMPDIR
       AGENT_PATH="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
       downloadAgent $DOWNLOADURL $AGENT_PATH
-      chmod 755 $AGENT_PATH 2>&1 >> $LOG_FILE
+      chmod 755 $AGENT_PATH &>> $LOG_FILE
       install_path=$(getInstallDir)
 
       if [[ -d /opt/dynatrace/oneagent ]]; then
@@ -168,7 +168,7 @@ case $1 in
         uninstallOneAgent
       fi
 
-      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path 2>&1 >> $LOG_FILE
+      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path &>> $LOG_FILE
 
       # Start oneagenthelper manually
       if [[ "x$START_HELPER" != "x0" ]]; then
