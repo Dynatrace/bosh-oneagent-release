@@ -33,7 +33,7 @@ if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
     ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
 fi
 
-# set downloadurl if not given
+# set downloadurl to fallback if not given
 if [[ "$DOWNLOADURL" == "" ]]; then
     if [ "x$ENV_ID" == "x" ] && [ "x$API_TOKEN" == "x" ]; then
         installLog "Invalid configuration:"
@@ -55,7 +55,7 @@ fi
 getInstallDir() {
     local INSTALL_DIR="/opt/dynatrace/oneagent"
 
-    if [[ -d /var/vcap/data ]] && [[ $(df --output=avail -m /var/vcap/data | sed 1d) -gt 2048 ]]; then
+    if [[ -d /var/vcap/data ]] && [[ $(df --output=avail -m /var/vcap/data | awk '{if (NR==2) {print $1}}') -gt 2048 ]]; then
         INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
     fi
 
@@ -63,12 +63,8 @@ getInstallDir() {
 }
 
 getWatchdogPid() {
-    #local AGENT_BIN=oneagentos
     local AGENT_WATCHDOG=oneagentwatchdog
 
-    # grep -v "grep" is required, because ps -ef returns also "grep '${AGENT_WATCHDOG}.*${AGENT_BIN}"' process
-    # grep -v "sudo" it is enough to use "direct" watchdog pids, filter sudo calls with watchdog params.
-    #ps -ef | grep "${AGENT_WATCHDOG}" | grep "${AGENT_BIN}" | grep -v "grep" | grep -v "sudo" | awk ' { print $2 } '
     pgrep -f "${AGENT_WATCHDOG}"
 }
 
@@ -90,6 +86,7 @@ downloadAgent() {
     while [[ $downloadErrors -lt 3 ]]; do
         sleep $retryTimeout
 
+        installLog "Downloading agent installer from ${downloadUrl}"
         $downloadCommand
         if [[ $? != 0 ]]; then
             downloadErrors=$((downloadErrors+1))
@@ -110,16 +107,17 @@ downloadAgent() {
 }
 
 startOneAgentHelper() {
+  local oneagentHelperCommand="/opt/dynatrace/oneagent/agent/lib64/oneagenthelper"
   #gdn is the daemon for garden-runc >= 1.2.0
   if pgrep -x "gdn" > /dev/null
   then
     installLog "Found gdn process. Starting oneagenthelper..."
-    /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x gdn` --garden &
+    ${oneagentHelperCommand} -p `pgrep -x gdn` --garden &
   #guardian is the daemon for garden-runc < 1.2.0
   elif pgrep -x "guardian" > /dev/null
   then
     installLog "Found guardian process. Starting oneagenthelper..."
-    /opt/dynatrace/oneagent/agent/lib64/oneagenthelper -p `pgrep -x guardian` --garden &
+    ${oneagentHelperCommand} -p `pgrep -x guardian` --garden &
   fi
 }
 
@@ -139,7 +137,6 @@ uninstallOneAgent(){
     sh /opt/dynatrace/oneagent/agent/uninstall.sh &>> $LOG_FILE
   fi
 
-  # Stop oneagenthelper
   if [[ "x$START_HELPER" != "x0" ]]; then
     stopOneAgentHelper
   fi
