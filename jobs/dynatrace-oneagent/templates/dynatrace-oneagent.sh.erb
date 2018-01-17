@@ -50,17 +50,15 @@ if [[ "$SSL_MODE" == "all" ]]; then
     installLog "accepting all ssl certificates for agent download"
     SSL_INSECURE_CURL="--insecure"
     SSL_INSECURE_WGET="--no-check-certificate"
+else
+    SSL_INSECURE_CURL=""
+    SSL_INSECURE_WGET=""
 fi
 
-getInstallDir() {
-    local INSTALL_DIR="/opt/dynatrace/oneagent"
-
-    if [[ -d /var/vcap/data ]] && [[ $(df --output=avail -m /var/vcap/data | awk '{if (NR==2) {print $1}}') -gt 2048 ]]; then
-        INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
-    fi
-
-    echo ${INSTALL_DIR}
-}
+INSTALL_DIR="/opt/dynatrace/oneagent"
+if [[ -d /var/vcap/data ]] && [[ $(df --output=avail -m /var/vcap/data | awk '{if (NR==2) {print $1}}') -gt 2048 ]]; then
+    INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
+fi
 
 getWatchdogPid() {
     local AGENT_WATCHDOG=oneagentwatchdog
@@ -73,9 +71,9 @@ downloadAgent() {
     local installerFile=$2
 
     if curl -h &> /dev/null ; then
-        local downloadCommand="curl -f $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile}"
+        local downloadCommand="curl -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile}"
     elif wget -h &> /dev/null ; then
-        local downloadCommand="wget $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile}"
+        local downloadCommand="wget --connect-timeout=10 $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile}"
     else
         installLog "ERROR: Neither curl nor wget executable found!"
         exit 1
@@ -107,18 +105,16 @@ downloadAgent() {
 }
 
 startOneAgentHelper() {
-  local oneagentHelperCommand="/opt/dynatrace/oneagent/agent/lib64/oneagenthelper"
+    local oneagentHelperCommand="${1}/agent/lib64/oneagenthelper"
   #gdn is the daemon for garden-runc >= 1.2.0
-  if pgrep -x "gdn" > /dev/null
-  then
+  if gardenProcess=`pgrep -x "gdn"`; then
     installLog "Found gdn process. Starting oneagenthelper..."
-    ${oneagentHelperCommand} -p `pgrep -x gdn` --garden &
   #guardian is the daemon for garden-runc < 1.2.0
-  elif pgrep -x "guardian" > /dev/null
-  then
+  elif gardenProcess=`pgrep -x "guardian"`; then
     installLog "Found guardian process. Starting oneagenthelper..."
-    ${oneagentHelperCommand} -p `pgrep -x guardian` --garden &
   fi
+
+  ${oneagentHelperCommand} -p `pgrep -x ${gardenProcess}` --garden &
 }
 
 stopOneAgentHelper() {
@@ -132,17 +128,17 @@ stopOneAgentHelper() {
 
 uninstallOneAgent(){
   installLog "Trying to uninstall the OneAgent..."
-  if [[ -f /opt/dynatrace/oneagent/agent/uninstall.sh ]]; then
+  if [[ -f ${INSTALL_DIR}/agent/uninstall.sh ]]; then
     installLog "Found uninstall script to run..."
-    sh /opt/dynatrace/oneagent/agent/uninstall.sh &>> $LOG_FILE
+    sh ${INSTALL_DIR}/agent/uninstall.sh &>> $LOG_FILE
   fi
 
   if [[ "x$START_HELPER" != "x0" ]]; then
     stopOneAgentHelper
   fi
 
-  installLog "Cleaning up /opt/dynatrace/oneagent..."
-  rm -rf /opt/dynatrace/oneagent
+  installLog "Cleaning up ${INSTALL_DIR}..."
+  rm -rf ${INSTALL_DIR}
 }
 
 installLog() {
@@ -152,25 +148,23 @@ installLog() {
 case $1 in
   start)
     pid=$(getWatchdogPid)
-    # If the watchdog was stopped or rolled over...
     if [[ "$pid" == "" ]]; then
       mkdir -p $TMPDIR
       AGENT_PATH="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
       downloadAgent $DOWNLOADURL $AGENT_PATH
       chmod 755 $AGENT_PATH &>> $LOG_FILE
-      install_path=$(getInstallDir)
 
-      if [[ -d /opt/dynatrace/oneagent ]]; then
-        installLog "Found leftovers in /opt/dynatrace/oneagent"
+      if [[ -d ${INSTALL_DIR} ]]; then
+        installLog "Found leftovers in ${INSTALL_DIR}"
         uninstallOneAgent
       fi
 
-      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$install_path &>> $LOG_FILE
+      sh $TMPDIR/Dynatrace-OneAgent-Linux.sh $ARGS INSTALL_PATH=$INSTALL_DIR &>> $LOG_FILE
 
       # Start oneagenthelper manually
       if [[ "x$START_HELPER" != "x0" ]]; then
         installLog "starthelper is enabled"
-        startOneAgentHelper
+        startOneAgentHelper ${install_path}
       fi
       pid=$(getWatchdogPid)
     fi
