@@ -35,7 +35,7 @@ fi
 
 # set downloadurl to fallback if not given
 if [[ "$DOWNLOADURL" == "" ]]; then
-    if [ "x$ENV_ID" == "x" ] && [ "x$API_TOKEN" == "x" ]; then
+    if [[ "x$ENV_ID" == "x" ]] && [[ "x$API_TOKEN" == "x" ]]; then
         installLog "Invalid configuration:"
         installLog "Please set environment ID and API token for Dynatrace OneAgent."
         exit 1
