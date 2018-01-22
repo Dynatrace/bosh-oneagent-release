@@ -31,35 +31,6 @@ function installLog($level, $content) {
     Write-Output $line | Out-File -Encoding utf8 -Append $logFile
 }
 
-#function Log($level, $content) {
-#	$line = "{0} {1} {2}" -f (Get-Date), $level, $content
-#
-#	try {
-#	    Write-Host ("LOG: {0}" -f $line)
-#	} catch {
-#	}
-#
-#	try {
-#	    Write-Output $line | Out-File -Encoding ascii -Append $logFile
-#	} catch {
-#	}
-#}
-#
-#function LogInfo($content) {
-#	Log "INFO" $content
-#}
-#
-#function LogWarning($content) {
-#	Log "WARNING" $content
-#}
-#
-#function LogError($content) {
-#	if ($_.Exception -ne $null) {
-#		Log "ERROR" ("Exception.Message = {0}" -f $_.Exception.Message)
-#	}
-#	Log "ERROR" $content
-#}
-
 function SetupSslAcceptAll {
 	$codeProvider = New-Object Microsoft.CSharp.CSharpCodeProvider
 	$codeCompilerParams = New-Object System.CodeDom.Compiler.CompilerParameters
