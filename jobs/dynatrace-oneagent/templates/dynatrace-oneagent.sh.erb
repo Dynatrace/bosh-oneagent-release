@@ -11,12 +11,12 @@ export SSL_MODE="<%= properties.dynatrace.sslmode %>"
 export APP_LOG_CONTENT_ACCESS="<%= properties.dynatrace.applogaccess %>"
 export START_HELPER="<%= properties.dynatrace.starthelper %>"
 
-export TMPDIR=/var/vcap/data/dt_tmp
+export TMPDIR="/var/vcap/data/dt_tmp"
 
-RUN_DIR=/var/vcap/sys/run/dynatrace-oneagent
-LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
+RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
+LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
 LOG_FILE=$LOG_DIR/dynatrace-install.log
-if ! mkdir -p ${RUN_DIR} ${LOG_DIR}; then
+if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}"; then
     installLog "ERROR: Creating directories ${RUN_DIR} and ${LOG_DIR} failed!"
     exit 1
 fi
@@ -29,21 +29,22 @@ if [[ "$PROXY" != "" ]]; then
     export http_proxy="$PROXY"
 fi
 
+# set default to on
 if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
     ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
 fi
 
 # set downloadurl to fallback if not given
 if [[ "$DOWNLOADURL" == "" ]]; then
-    if [[ "x$ENV_ID" == "x" ]] && [[ "x$API_TOKEN" == "x" ]]; then
+    if [[ "$ENV_ID" == "" ]] || [[ "$API_TOKEN" == "" ]]; then
         installLog "Invalid configuration:"
         installLog "Please set environment ID and API token for Dynatrace OneAgent."
         exit 1
     fi
-    if [[ "x$API_URL" == "x" ]]; then
+    if [[ "$API_URL" == "" ]]; then
         API_URL="https://$ENV_ID.live.dynatrace.com/api"
     fi
-        DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
+    DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
 fi
 
 SSL_INSECURE_CURL=""
@@ -54,15 +55,16 @@ if [[ "$SSL_MODE" == "all" ]]; then
     SSL_INSECURE_WGET="--no-check-certificate"
 fi
 
-if [[ -d /var/vcap/data ]] && [[ $(df --output=avail -m /var/vcap/data | awk '{if (NR==2) {print $1}}') -gt 2048 ]]; then
-    INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
+INSTALL_BASE_DIR="/var/vcap/data"
+if [[ -d ${INSTALL_BASE_DIR} ]] && [[ $(df --output=avail -m ${INSTALL_BASE_DIR} | awk '{if (NR==2) {print $1}}') -gt 2048 ]]; then
+    INSTALL_DIR="${INSTALL_BASE_DIR}/dynatrace/oneagent"
 else
-    installLog "Not enough disk space available!"
+    installLog "Not enough disk space available on ${INSTALL_BASE_DIR}!"
     exit 1
 fi
 
 getWatchdogPid() {
-    local AGENT_WATCHDOG=oneagentwatchdog
+    local AGENT_WATCHDOG="oneagentwatchdog"
 
     pgrep -f "${AGENT_WATCHDOG}"
 }
@@ -89,7 +91,7 @@ downloadAgent() {
         $downloadCommand
         if [[ $? != 0 ]]; then
             downloadErrors=$((downloadErrors+1))
-            retryTimeout=$(($retryTimeout+5))
+            retryTimeout=$($retryTimeout+5)
 
             if [[ $downloadErrors -lt 3 ]]; then
                 installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
@@ -108,14 +110,14 @@ downloadAgent() {
 startOneAgentHelper() {
     local oneagentHelperCommand="${1}/agent/lib64/oneagenthelper"
   #gdn is the daemon for garden-runc >= 1.2.0
-  if gardenProcess=`pgrep -x "gdn"`; then
+  if gardenProcess=$(pgrep -x "gdn"); then
     installLog "Found gdn process. Starting oneagenthelper..."
   #guardian is the daemon for garden-runc < 1.2.0
-  elif gardenProcess=`pgrep -x "guardian"`; then
+  elif gardenProcess=$(pgrep -x "guardian"); then
     installLog "Found guardian process. Starting oneagenthelper..."
   fi
 
-  ${oneagentHelperCommand} -p `pgrep -x ${gardenProcess}` --garden &
+  "${oneagentHelperCommand}" -p "$(pgrep -x "${gardenProcess}")" --garden &
 }
 
 stopOneAgentHelper() {
@@ -127,55 +129,55 @@ stopOneAgentHelper() {
   fi
 }
 
-uninstallOneAgent(){
+uninstallOneAgent() {
   installLog "Trying to uninstall the OneAgent..."
 
-  local agentDir=${INSTALL_DIR}
-  if [[ ! -f ${agentDir} ]]; then
+  local agentDir="${INSTALL_DIR}"
+  if [[ ! -d "${agentDir}" ]]; then
       # fallback to cover previous versions of addon
       agentDir="/opt/dynatrace/oneagent"
   fi
 
-  if [[ "x$START_HELPER" != "x0" ]]; then
+  if [[ "$START_HELPER" != "0" ]]; then
     stopOneAgentHelper
   fi
 
   installLog "Found uninstall script to run..."
-  sh ${agentDir}/oneagent/agent/uninstall.sh &| tee -a $LOG_FILE
+  sh "${agentDir}/agent/uninstall.sh" 2>&1 | tee -a ${LOG_FILE}
 
   installLog "Cleaning up ${agentDir}..."
   rm -rf ${agentDir}
 }
 
 installLog() {
-    echo "$1" | tee -a ${LOG_FILE}
+    echo "$1" | tee -a "${LOG_FILE}"
 }
 
 case $1 in
   start)
     pid=$(getWatchdogPid)
     if [[ "$pid" == "" ]]; then
-      mkdir -p $TMPDIR
+      mkdir -p "$TMPDIR"
       INSTALLER_PATH="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
-      downloadAgent $DOWNLOADURL $INSTALL_PATH
+      downloadAgent "$DOWNLOADURL" "$INSTALL_DIR"
 
-      if [[ -d ${INSTALL_DIR} ]]; then
+      if [[ -d "${INSTALL_DIR}" ]]; then
         installLog "Found leftovers in ${INSTALL_DIR}"
         uninstallOneAgent
       fi
 
-      sh ${INSTALLER_PATH} $ARGS INSTALL_PATH=$INSTALL_DIR &| tee -a $LOG_FILE
+      sh "${INSTALLER_PATH}" "$ARGS" INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
 
       # Start oneagenthelper manually
-      if [[ "x$START_HELPER" != "x0" ]]; then
+      if [[ "$START_HELPER" != "0" ]]; then
         installLog "starthelper is enabled"
-        startOneAgentHelper ${install_path}
+        startOneAgentHelper "${INSTALL_DIR}"
       fi
       pid=$(getWatchdogPid)
     fi
-    echo $pid > ${RUN_DIR}/dynatrace-watchdog.pid
+    echo "$pid" > "${RUN_DIR}/dynatrace-watchdog.pid"
 
-    rm -r $TMPDIR
+    rm -r "$TMPDIR"
     ;;
 
   stop)
