@@ -138,10 +138,6 @@ function CleanupAll() {
 	CleanupExpandedAgent
 }
 
-function ExitFailed() {
-	InstallLog("ABORT" "Installation failed. See $logFile for more information.")
-	Exit 1
-}
 
 # ==================================================
 # main section
@@ -154,7 +150,7 @@ if ($cfgDownloadUrl.length -eq 0){
 	if ($cfgEnvironmentId.length -eq 0 -or $cfgApiToken.length -eq 0) {
 		installLog("ERROR", "Invalid configuration:")
 		installLog("ERROR", "Set environmentid and apitoken for Dynatrace OneAgent.")
-		ExitFailed
+		Exit 1
 	}
 	if ($cfgApiUrl.length -eq 0)  {
 		$cfgApiUrl = "http://{0}.live.dynatrace.com/api" -f $cfgEnvironmentId
@@ -183,7 +179,7 @@ try {
 } catch {
 	installLog("ERROR", "Failed to download OneAgent for Windows")
 	CleanupDownload
-	ExitFailed
+	Exit 1
 }
 
 # extract
@@ -196,7 +192,7 @@ try {
 } catch {
 	installLog("ERROR", "Failed to extract $agentDownloadTargetPath")
 	CleanupAll
-	ExitFailed
+	Exit 1
 }
 
 #run the installer
@@ -210,7 +206,7 @@ try {
     $process.WaitForExit()
 } catch {
     installLog("ERROR", "Failed to run OneAgent installer $agentExpandPath /install.bat")
-    ExitFailed
+    Exit 1
 }
 
 installLog("INFO", "Installation done")
@@ -248,4 +244,4 @@ if ($app) {
 
 installLog("INFO", "Exiting ...")
 
-exit 0
+Exit 0
