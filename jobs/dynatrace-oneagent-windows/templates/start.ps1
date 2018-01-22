@@ -14,8 +14,9 @@ $cfgApiUrl = "<%= properties.dynatrace.apiurl %>"
 $cfgSslMode = "<%= properties.dynatrace.sslmode %>"
 
 $oneagentwatchdogProcessName = "oneagentwatchdog"
-$agentDownloadTargetPath = "/var/vcap/data/tmp/Dynatrace-OneAgent-Windows.zip"
-$agentExpandPath = "/var/vcap/data/tmp/dynatrace-oneagent-windows"
+$tempDir = "/var/vcap/data/dt_tmp"
+$installerFile = "$tempDir/Dynatrace-OneAgent-Windows.zip"
+$agentExpandPath = "$tempDir/dynatrace-oneagent-windows"
 $logDir = "/var/vcap/sys/log/dynatrace-onagent-windows"
 $logFile = "$logDir/dynatrace-install.log"
 $dynatraceServiceName = "Dynatrace OneAgent"
@@ -69,11 +70,6 @@ function Unzip($filename, $destination)
     [System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $destination)
 }
 
-function ExpandZipFile($filename, $destination) {
-
-	Unzip "$filename" "$destination"
-}
-
 function SafeDelete($path) {
 	try {
 		Remove-Item -Recurse $path -Force
@@ -83,12 +79,12 @@ function SafeDelete($path) {
 
 function CleanupDownload() {
 	try {
-		installLog("INFO", "Cleaning $agentDownloadTargetPath")
-		if (Test-Path -Path $agentDownloadTargetPath) {
-			SafeDelete $agentDownloadTargetPath
+		installLog("INFO", "Cleaning $installerFile")
+		if (Test-Path -Path $installerFile) {
+			SafeDelete $installerFile
 		}
 	} catch {
-		installLog("ERROR",AndExit "Unable to remove directory: $agentDownloadTargetPath")
+		installLog("ERROR",AndExit "Unable to remove directory: $installerFile")
 	}
 }
 
@@ -108,6 +104,36 @@ function CleanupAll() {
 	CleanupExpandedAgent
 }
 
+function downloadAgent($src, $dest) {
+    $downloadUrl = $src
+    $installerPath = $dest
+    $retryTimeout = 0
+    $downloadErrors = 0
+
+    if ($cfgSslMode -eq "all") {
+        installLog("INFO", "Accepting all ssl certificates")
+        SetupSslAcceptAll
+    }
+
+    while($downloadErrors -lt 3) {
+        Start-Sleep -s $retryTimeout
+
+        Try {
+            installLog("INFO", "Downloading Dynatrace agent from $downloadUrl to $installerPath"
+            Invoke-WebRequest $downloadUrl -Outfile $installerPath
+            Break
+        } Catch {
+            $downloadErrors = $downloadErrors + 1
+            $retryTimeout = $retryTimeout + 5
+            installLog("ERROR", "Dynatrace agent download failed, retrying in $retryTimeout seconds"
+        }
+    }
+
+    if ($downloadErrors -eq 3) {
+      installStatus "error" "ERROR: Downloading agent installer failed!"
+      exit 1
+    }
+}
 
 # ==================================================
 # main section
@@ -128,39 +154,28 @@ if ($cfgDownloadUrl.length -eq 0){
 	$cfgDownloadUrl = "{0}/v1/deployment/installer/agent/windows/default-unattended/latest?Api-Token={1}" -f $cfgApiUrl, $cfgApiToken
 }
 
+# do we really want to log these?
 installLog("INFO", ("ENVIRONMENTID:   {0}" -f $cfgEnvironmentId))
 installLog("INFO", ("API URL:         {0}" -f $cfgApiUrl))
 installLog("INFO", ("API TOKEN:       {0}" -f $cfgApiToken))
 installLog("INFO", ("DOWNLOADURL:     {0}" -f $cfgDownloadUrl))
 
 # download
+downloadAgent($cfgDownloadUrl, $installerFile)
+
 try {
 	CleanupDownload
 
-	installLog("INFO", "Download target: $agentDownloadTargetPath")
-
-	if ($cfgSslMode -eq "all") {
-		installLog("INFO", "Accepting all ssl certificates")
-		SetupSslAcceptAll
-	}
-
-	installLog("INFO", "Downloading...")
-	Invoke-WebRequest $cfgDownloadUrl -OutFile $agentDownloadTargetPath
-} catch {
-	installLog("ERROR", "Failed to download OneAgent for Windows")
-	CleanupDownload
-	Exit 1
 }
 
 # extract
-
 try {
   CleanupExpandedAgent
 
-	installLog("INFO", "Expanding $agentDownloadTargetPath to $agentExpandPath...")
-	ExpandZipFile $agentDownloadTargetPath "$agentExpandPath"
+	installLog("INFO", "Expanding $installerFile to $agentExpandPath...")
+	Unzip $installerFile "$agentExpandPath"
 } catch {
-	installLog("ERROR", "Failed to extract $agentDownloadTargetPath")
+	installLog("ERROR", "Failed to extract $installerFile")
 	CleanupAll
 	Exit 1
 }
