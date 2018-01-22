@@ -61,16 +61,15 @@ function SetupSslAcceptAll {
 }
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-function Unzip
+function Unzip($filename, $destination)
 {
-    param([string]$zipfile, [string]$outpath)
+    installLog("INFO", "filename: $filename")
+    installLog("INFO", "destination: $destination")
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $destination)
 }
 
 function ExpandZipFile($filename, $destination) {
-    installLog("INFO", "filename: $filename")
-    installLog("INFO", "destination: $destination")
 
 	Unzip "$filename" "$destination"
 }
