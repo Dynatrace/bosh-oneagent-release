@@ -2,7 +2,6 @@
 name: dynatrace-oneagent-windows
 description: "This is a job that will run Dynatrace OneAgent installer for Windows"
 templates:
-  pre-start.ps1: bin/pre-start.ps1
   start.ps1: bin/start.ps1
   drain.ps1: bin/drain.ps1
 
