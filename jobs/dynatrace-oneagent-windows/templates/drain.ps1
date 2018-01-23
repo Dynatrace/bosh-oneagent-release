@@ -1,4 +1,6 @@
-'die' > /var/vcap/jobs/dynatrace-oneagent-windows/exit
+$drainLogFile = "/var/vcap/sys/log/dynatrace-oneagent-windows/drain.log"
+
+Write-Output 'die' | Out-File -Encoding utf8 /var/vcap/jobs/dynatrace-oneagent-windows/exit
 
 $dynatraceServiceName = "Dynatrace OneAgent"
 
@@ -13,9 +15,9 @@ do {
 Start-Sleep -s 15
 
 If ((Get-Service dynatrace-oneagent-windows).Status -eq "Running") {
-	[IO.File]::WriteAllLines('/var/vcap/sys/log/dynatrace-oneagent-windows/drain.log', 'failed')
+    Write-Output 'failed' | Out-File -Encoding utf8 $drainLogFile
 } Else {
-	[IO.File]::WriteAllLines('/var/vcap/sys/log/dynatrace-oneagent-windows/drain.log', 'success')
+    Write-Output 'success' | Out-File -Encoding utf8 $drainLogFile
 }
 
 Write-Host 0
