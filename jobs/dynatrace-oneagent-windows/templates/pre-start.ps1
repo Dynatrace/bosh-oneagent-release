@@ -77,15 +77,6 @@ function SetupSslAcceptAll {
 	[System.Net.ServicePointManager]::SecurityProtocol = $allProtocols
 }
 
-function ExitFailed() {
-	Log "ABORT" "Installation failed. See $logPath for more information."
-	Exit 1
-}
-
-function ExitSuccess() {
-	Exit 0
-}
-
 # ==================================================
 # main section
 # ==================================================
@@ -97,7 +88,7 @@ if ($cfgDownloadUrl.length -eq 0){
 	if ($cfgEnvironmentId.length -eq 0 -or $cfgApiToken.length -eq 0) {
 		LogError "Invalid configuration:"
 		LogError "Set environmentid and apitoken for Dynatrace OneAgent."
-		ExitFailed
+		Exit 1
 	}
 	if ($cfgApiUrl.length -eq 0)  {
 		$cfgApiUrl = "http://{0}.live.dynatrace.com/api" -f $cfgEnvironmentId
@@ -115,8 +106,8 @@ try {
 } catch {
   LogError "Unable to connect to $cfgDownloadUrl"
 	LogError "Error: $_.Exception.Response"
-	ExitFailed
+	Exit 1
 }
 
 LogInfo "Successfully connected to $cfgDownloadUrl"
-ExitSuccess
+Exit 0
