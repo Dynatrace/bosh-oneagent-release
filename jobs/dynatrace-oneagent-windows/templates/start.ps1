@@ -160,13 +160,12 @@ installLog("INFO", ("API URL:         {0}" -f $cfgApiUrl))
 installLog("INFO", ("API TOKEN:       {0}" -f $cfgApiToken))
 installLog("INFO", ("DOWNLOADURL:     {0}" -f $cfgDownloadUrl))
 
+try {
+	CleanupDownload
+}
 # download
 downloadAgent($cfgDownloadUrl, $installerFile)
 
-try {
-	CleanupDownload
-
-}
 
 # extract
 try {
