@@ -84,7 +84,7 @@ function CleanupDownload() {
 			SafeDelete $installerFile
 		}
 	} catch {
-		installLog("ERROR",AndExit "Unable to remove directory: $installerFile")
+		installLog("ERROR", "Unable to remove directory: $installerFile")
 	}
 }
 
@@ -95,7 +95,7 @@ function CleanupExpandedAgent() {
 			SafeDelete $agentExpandPath
 		}
 	} catch {
-		installLog("ERROR",AndExit "Unable to remove directory: $agentExpandPath")
+		installLog("ERROR", "Unable to remove directory: $agentExpandPath")
 	}
 }
 
@@ -119,13 +119,13 @@ function downloadAgent($src, $dest) {
         Start-Sleep -s $retryTimeout
 
         Try {
-            installLog("INFO", "Downloading Dynatrace agent from $downloadUrl to $installerPath"
+            installLog("INFO", "Downloading Dynatrace agent from $downloadUrl to $installerPath")
             Invoke-WebRequest $downloadUrl -Outfile $installerPath
             Break
         } Catch {
             $downloadErrors = $downloadErrors + 1
             $retryTimeout = $retryTimeout + 5
-            installLog("ERROR", "Dynatrace agent download failed, retrying in $retryTimeout seconds"
+            installLog("ERROR", "Dynatrace agent download failed, retrying in $retryTimeout seconds")
         }
     }
 
