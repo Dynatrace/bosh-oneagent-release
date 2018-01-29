@@ -33,3 +33,8 @@ properties:
   dynatrace.starthelper:
     description: 'Temporary switch for starting oneagenthelper from bosh job'
     default: 0
+  dynatrace.host_tags:
+    description: 'Host tags for this VM. Format like DT_TAGS ENV variable: single line, space separated pairs of <key>=<value>'
+    default: ''
+    example: landscape=production team=my_team
+    

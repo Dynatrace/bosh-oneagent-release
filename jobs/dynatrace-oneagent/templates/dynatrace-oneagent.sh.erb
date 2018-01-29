@@ -14,6 +14,7 @@ export APP_LOG_CONTENT_ACCESS=<%= properties.dynatrace.applogaccess %>
 export TMPDIR=/var/vcap/data/tmp
 
 RUN_DIR=/var/vcap/sys/run/dynatrace-oneagent
+CONFIG_DIR=/var/lib/dynatrace/oneagent/agent/config
 export LOG_DIR=/var/vcap/sys/log/dynatrace-oneagent
 export LOG_FILE=$LOG_DIR/dynatrace-install.log
 mkdir -p ${RUN_DIR} ${LOG_DIR}
@@ -104,6 +105,12 @@ case $1 in
       pid=$(getWatchdogPid)
     fi
     echo $pid > ${RUN_DIR}/dynatrace-watchdog.pid
+    toLogInfo "Setting host tags..."
+    <% if p('dynatrace.host_tags').blank? %>
+    > $CONFIG_DIR/hostautotag.conf
+    <% else %>
+    echo "<%= p('dynatrace.host_tags') %>" > ${CONFIG_DIR}/hostautotag.conf
+    <% end %>
     ;;
 
   stop)
