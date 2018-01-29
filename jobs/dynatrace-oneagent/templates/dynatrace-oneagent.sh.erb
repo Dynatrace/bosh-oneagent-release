@@ -3,13 +3,13 @@ set -e -x
 
 export PATH="/var/vcap/packages/dynatrace-oneagent:$PATH"
 
-export DOWNLOADURL=<%= properties.dynatrace.downloadurl %>
-export PROXY=<%= properties.dynatrace.proxy %>
-export ENV_ID=<%= properties.dynatrace.environmentid %>
-export API_TOKEN=<%= properties.dynatrace.apitoken %>
-export API_URL=<%= properties.dynatrace.apiurl %>
-export SSL_MODE=<%= properties.dynatrace.sslmode %>
-export APP_LOG_CONTENT_ACCESS=<%= properties.dynatrace.applogaccess %>
+export DOWNLOADURL=<%= p('dynatrace.downloadurl') %>
+export PROXY=<%= p('dynatrace.proxy') %>
+export ENV_ID=<%= p('dynatrace.environmentid') %>
+export API_TOKEN=<%= p('dynatrace.apitoken') %>
+export API_URL=<%= p('dynatrace.apiurl') %>
+export SSL_MODE=<%= p('dynatrace.sslmode') %>
+export APP_LOG_CONTENT_ACCESS=<%= p('dynatrace.applogaccess') %>
 
 export TMPDIR=/var/vcap/data/tmp
 
