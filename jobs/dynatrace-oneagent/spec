@@ -13,8 +13,10 @@ packages:
 properties:
   dynatrace.environmentid:
     description: 'Dynatrace environment ID'
+    default: ''
   dynatrace.apitoken:
     description: 'API token'
+    default: ''
   dynatrace.apiurl:
     description: 'URL to Dynatrace API endpoint'
     default: ''
