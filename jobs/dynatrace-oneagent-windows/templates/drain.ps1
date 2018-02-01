@@ -4,8 +4,6 @@ Write-Output 'die' | Out-File -Encoding utf8 /var/vcap/jobs/dynatrace-oneagent-w
 
 $dynatraceServiceName = "Dynatrace OneAgent"
 
-Start-Sleep -s 3
-
 #wait for start.ps1 to uninstall Dynatrace OneAgent
 do {
 	Start-Sleep -s 3
@@ -20,4 +18,4 @@ If ((Get-Service dynatrace-oneagent-windows).Status -eq "Running") {
     Write-Output 'success' | Out-File -Encoding utf8 $drainLogFile
 }
 
-Write-Host 0
+Exit 0
