@@ -17,7 +17,7 @@ $oneagentwatchdogProcessName = "oneagentwatchdog"
 $tempDir = "/var/vcap/data/dt_tmp"
 $installerFile = "$tempDir/Dynatrace-OneAgent-Windows.zip"
 $agentExpandPath = "$tempDir/dynatrace-oneagent-windows"
-$logDir = "/var/vcap/sys/log/dynatrace-onagent-windows"
+$logDir = "/var/vcap/sys/log/dynatrace-oneagent-windows"
 $logFile = "$logDir/dynatrace-install.log"
 $dynatraceServiceName = "Dynatrace OneAgent"
 $exitHelperFile = "/var/vcap/jobs/dynatrace-oneagent-windows/exit"
@@ -25,11 +25,11 @@ $exitHelperFile = "/var/vcap/jobs/dynatrace-oneagent-windows/exit"
 # ==================================================
 # function section
 # ==================================================
-function installLog($level, $content) {
+function installLog ($level, $content) {
 	$line = "{0} {1} {2}" -f (Get-Date), $level, $content
 
-    Write-Host $line
-    Write-Output $line | Out-File -Encoding utf8 -Append $logFile
+	Write-Host $line
+	Write-Output $line | Out-File -Encoding utf8 -Append $logFile
 }
 
 function SetupSslAcceptAll {
@@ -57,51 +57,51 @@ function SetupSslAcceptAll {
 
 	[System.Net.ServicePointManager]::CertificatePolicy = $trustAll
 
-	$allProtocols = [System.Net.SecurityProtocolType]'Ssl3,Tls,Tls11,Tls12'
+	$allProtocols = [System.Net.SecurityProtocolType]'Tls,Tls11,Tls12'
 	[System.Net.ServicePointManager]::SecurityProtocol = $allProtocols
 }
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 function Unzip($filename, $destination)
 {
-    installLog("INFO", "filename: $filename")
-    installLog("INFO", "destination: $destination")
+    installLog "INFO" "filename: $filename"
+    installLog "INFO" "destination: $destination"
 
     [System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $destination)
 }
 
-function SafeDelete($path) {
+function deleteItem($path) {
 	try {
 		Remove-Item -Recurse $path -Force
 	} catch {
 	}
 }
 
-function CleanupDownload() {
+function removeInstallerArchive() {
 	try {
-		installLog("INFO", "Cleaning $installerFile")
+		installLog "INFO" "Cleaning $installerFile"
 		if (Test-Path -Path $installerFile) {
-			SafeDelete $installerFile
+			deleteItem $installerFile
 		}
 	} catch {
-		installLog("ERROR", "Unable to remove directory: $installerFile")
+		installLog "ERROR" "Unable to remove directory: $installerFile"
 	}
 }
 
-function CleanupExpandedAgent() {
+function removeExpandedInstaller() {
 	try {
-		installLog("INFO", "Cleaning $agentExpandPath")
+		installLog "INFO", "Cleaning $agentExpandPath"
 		if (Test-Path -Path $agentExpandPath) {
-			SafeDelete $agentExpandPath
+			deleteItem $agentExpandPath
 		}
 	} catch {
-		installLog("ERROR", "Unable to remove directory: $agentExpandPath")
+		installLog "ERROR", "Unable to remove directory: $agentExpandPath"
 	}
 }
 
 function CleanupAll() {
-	CleanupDownload
-	CleanupExpandedAgent
+	removeInstallerArchive
+	removeExpandedInstaller
 }
 
 function downloadAgent($src, $dest) {
@@ -111,7 +111,7 @@ function downloadAgent($src, $dest) {
     $downloadErrors = 0
 
     if ($cfgSslMode -eq "all") {
-        installLog("INFO", "Accepting all ssl certificates")
+        installLog "INFO" "Accepting all ssl certificates"
         SetupSslAcceptAll
     }
 
@@ -119,35 +119,56 @@ function downloadAgent($src, $dest) {
         Start-Sleep -s $retryTimeout
 
         Try {
-            installLog("INFO", "Downloading Dynatrace agent from $downloadUrl to $installerPath")
+            installLog "INFO" "Downloading Dynatrace agent from $downloadUrl to $installerPath"
             Invoke-WebRequest $downloadUrl -Outfile $installerPath
             Break
         } Catch {
             $downloadErrors = $downloadErrors + 1
             $retryTimeout = $retryTimeout + 5
-            installLog("ERROR", "Dynatrace agent download failed, retrying in $retryTimeout seconds")
+            installLog "ERROR" "Dynatrace agent download failed, retrying in $retryTimeout seconds"
         }
     }
 
     if ($downloadErrors -eq 3) {
-      installStatus "error" "ERROR: Downloading agent installer failed!"
-      exit 1
+      installLog "error" "ERROR: Downloading agent installer failed!"
+      Exit 1
     }
+}
+
+function configureProxySettings() {
+	if ($cfgProxy) {
+		installLog "INFO" "Proxy settings found, setting system proxy to $cfgProxy"
+
+		try {
+			$reg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+
+			Set-ItemProperty -Path $reg -Name ProxyServer -Value $cfgProxy
+			Set-ItemProperty -Path $reg -Name ProxyEnable -Value 1
+		} catch {
+			installLog "ERROR" "Setting system proxy failed!"
+			Exit 1
+		}
+	}
 }
 
 # ==================================================
 # main section
 # ==================================================
+installLog "INFO", "Installing Dynatrace OneAgent..."
+New-Item -ItemType Directory -Path $tempDir
+New-Item -ItemType Directory -Path $agentExpandPath
 
-installLog("INFO", "Installing Dynatrace OneAgent...")
+configureProxySettings
 
 # download mode setup
 if ($cfgDownloadUrl.length -eq 0){
-	if ($cfgEnvironmentId.length -eq 0 -or $cfgApiToken.length -eq 0) {
-		installLog("ERROR", "Invalid configuration:")
-		installLog("ERROR", "Set environmentid and apitoken for Dynatrace OneAgent.")
+	if ($cfgEnvironmentId.length -eq 0) {
+		installLog "ERROR" "Invalid configuration: Please provide environment ID!"
 		Exit 1
+	} elseif ($cfgApiToken.Length -eq 0) {
+		installLog "ERROR" "Invalid configuration: Please provide API token!"
 	}
+
 	if ($cfgApiUrl.length -eq 0)  {
 		$cfgApiUrl = "http://{0}.live.dynatrace.com/api" -f $cfgEnvironmentId
 	}
@@ -155,32 +176,20 @@ if ($cfgDownloadUrl.length -eq 0){
 }
 
 # do we really want to log these?
-installLog("INFO", ("ENVIRONMENTID:   {0}" -f $cfgEnvironmentId))
-installLog("INFO", ("API URL:         {0}" -f $cfgApiUrl))
-installLog("INFO", ("API TOKEN:       {0}" -f $cfgApiToken))
-installLog("INFO", ("DOWNLOADURL:     {0}" -f $cfgDownloadUrl))
+installLog "INFO" "Using API URL $cfgApiUrl"
+
+CleanupAll
+downloadAgent $cfgDownloadUrl $installerFile
 
 try {
-	CleanupDownload
-}
-# download
-downloadAgent($cfgDownloadUrl, $installerFile)
-
-
-# extract
-try {
-  CleanupExpandedAgent
-
-	installLog("INFO", "Expanding $installerFile to $agentExpandPath...")
-	Unzip $installerFile "$agentExpandPath"
+	installLog "INFO", "Expanding $installerFile to $agentExpandPath..."
+	Unzip "$installerFile" "$agentExpandPath"
 } catch {
-	installLog("ERROR", "Failed to extract $installerFile")
-	CleanupAll
+	installLog "ERROR" "Failed to extract $installerFile to $agentExpandPath"
 	Exit 1
 }
 
 #run the installer
-
 try {
     $agentInstallerFile = $agentExpandPath + "/install.bat"
 
@@ -189,43 +198,48 @@ try {
     $process = Start-Process -WorkingDirectory $agentExpandPath -FilePath "install.bat" -Wait -PassThru
     $process.WaitForExit()
 } catch {
-    installLog("ERROR", "Failed to run OneAgent installer $agentExpandPath /install.bat")
+    installLog "ERROR" "Failed to run OneAgent installer $agentExpandPath /install.bat"
     Exit 1
 }
-
-installLog("INFO", "Installation done")
+installLog "INFO" "Installation done"
 
 #Note: The installer automatically started the OneAgent after installation.
+$watchdogWaitCounter = 0
 do {
-	installLog("INFO", "Waiting for $oneagentwatchdogProcessName to be started by the installer...")
+	if($watchdogWaitCounter -gt 300) {
+		installLog "ERROR" "{0} did not start in time!" -f $oneagentwatchdogProcessName
+		Exit 1
+	}
+
+	installLog "INFO" "Waiting for $oneagentwatchdogProcessName to be started by the installer..."
 	Start-Sleep -s 5
 	$output = Get-Process | Where-Object {$_.ProcessName -match "$oneagentwatchdogProcessName"}
+	$watchdogWaitCounter++
 } while ($output.length -eq 0)
-
-installLog("INFO", "Process $oneagentwatchdogProcessName has started")
+installLog "INFO" "Process $oneagentwatchdogProcessName has started"
 
 #run this script infinitely and exit when drain-script was started
-installLog("INFO", "Waiting for drain.ps1 to stop start.ps1 script...")
+installLog "INFO" "Waiting for drain.ps1 to stop start.ps1 script..."
 
 If (Test-Path "$exitHelperFile") {
 	rm $exitHelperFile
 }
 
-while (!(Test-Path "$exitHelperFile"))
-{
+while (!(Test-Path "$exitHelperFile")) {
 	Start-Sleep -s 5
 }
 
-installLog("INFO", "Uninstalling $dynatraceServiceName...")
+installLog "INFO" "Uninstalling $dynatraceServiceName..."
 
 $app = Get-WMiObject -Class Win32_Product | Where-Object { $_.Name -match "$dynatraceServiceName" }
+CleanupAll
 if ($app) {
 	$app.Uninstall() >$null 2>&1
-	installLog("INFO", "Uninstall done")
+	installLog "INFO" "Uninstalling $dynatraceServiceName done"
 } else {
-	installLog("WARNING", "$dynatraceServiceName not found in installed products")
+	installLog "WARNING" "$dynatraceServiceName not found in installed products"
 }
 
-installLog("INFO", "Exiting ...")
+installLog "INFO" "Exiting ..."
 
 Exit 0
