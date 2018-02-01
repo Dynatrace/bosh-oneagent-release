@@ -64,8 +64,7 @@ function SetupSslAcceptAll {
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 function Unzip($filename, $destination)
 {
-    installLog "INFO" "filename: $filename"
-    installLog "INFO" "destination: $destination"
+    installLog "INFO" "Extracting $filename to $destination"
 
     [System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $destination)
 }
@@ -155,8 +154,13 @@ function configureProxySettings() {
 # main section
 # ==================================================
 installLog "INFO", "Installing Dynatrace OneAgent..."
-New-Item -ItemType Directory -Path $tempDir
-New-Item -ItemType Directory -Path $agentExpandPath
+CleanupAll
+If(!(Test-Path $tempDir)) {
+    New-Item -ItemType Directory -Path $tempDir
+}
+If(!(Test-Path $agentExpandPath)) {
+    New-Item -ItemType Directory -Path $agentExpandPath
+}
 
 configureProxySettings
 
@@ -178,7 +182,6 @@ if ($cfgDownloadUrl.length -eq 0){
 # do we really want to log these?
 installLog "INFO" "Using API URL $cfgApiUrl"
 
-CleanupAll
 downloadAgent $cfgDownloadUrl $installerFile
 
 try {
