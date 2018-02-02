@@ -4,6 +4,8 @@ Write-Output 'die' | Out-File -Encoding utf8 /var/vcap/jobs/dynatrace-oneagent-w
 
 $dynatraceServiceName = "Dynatrace OneAgent"
 
+Start-Sleep -s 5
+
 #wait for start.ps1 to uninstall Dynatrace OneAgent
 do {
 	Start-Sleep -s 3
