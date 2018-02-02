@@ -14,6 +14,12 @@ do {
 
 Start-Sleep -s 15
 
+if ((Get-Service -Name "${dynatraceServiceName}").Status -ne "Running") {
+    echo "$(Get-Date): service '${dynatraceServiceName}' not running" >> $LOGFILE
+    echo "0"
+    Exit 0
+}
+
 If ((Get-Service dynatrace-oneagent-windows).Status -eq "Running") {
     Write-Output 'failed' | Out-File -Encoding utf8 $drainLogFile
 } Else {
