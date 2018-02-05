@@ -4,6 +4,9 @@ description: "This is a job that will run Dynatrace OneAgent installer for Linux
 
 templates:
   dynatrace-oneagent.sh.erb: bin/dynatrace-oneagent.sh
+  dynatrace-oneagenthelper.sh.erb: bin/dynatrace-oneagenthelper.sh
+  common.sh.erb: bin/common.sh
+  pre-start.erb: bin/pre-start
 
 packages:
 
@@ -29,4 +32,4 @@ properties:
     default: '1'
   dynatrace.starthelper:
     description: 'Temporary switch for starting oneagenthelper from bosh job'
-    default: '0'
+    default: 0
