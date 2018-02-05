@@ -129,6 +129,27 @@ stopOneAgentHelper() {
   fi
 }
 
+runInstaller() {
+    local installerRetries=10
+    #check if another installer is running
+    while [[ $installerRetries -ge 0 ]]; do
+        pgrep -f Dynatrace-OneAgent > /dev/null
+        local installerFound=$?
+        if [[ $installerFound -eq 1 ]]; then
+            sh "${INSTALLER_PATH}" ${ARGS} INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
+            break
+        elif [[ $installerFound -eq 0 ]] && [[ $installerRetries -gt 0 ]]; then
+            installLog "Another installer instance found running, waiting 30 seconds before retrying, $((installerRetries-1)) retries left"
+            sleep 30
+            installerRetries=$((installerRetries-1))
+            continue
+        elif [[ $installerFound -eq 0 ]] && [[ $installerRetries -lt 1 ]]; then
+            installLog "ERROR: Waiting for other installer to end took too long"
+            exit 1
+        fi
+
+    done
+}
 uninstallOneAgent() {
   installLog "Trying to uninstall the OneAgent..."
 
@@ -171,7 +192,7 @@ case $1 in
         uninstallOneAgent
       fi
 
-      sh "${INSTALLER_PATH}" ${ARGS} INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
+      runInstaller
 
       # Start oneagenthelper manually
       if [[ "$START_HELPER" != "0" ]]; then
