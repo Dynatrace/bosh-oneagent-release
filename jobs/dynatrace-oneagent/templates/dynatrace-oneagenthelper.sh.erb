@@ -2,7 +2,7 @@
 set -e -x
 
 export PATH="/var/vcap/packages/dynatrace-oneagent:$PATH"
-export START_HELPER=<%= properties.dynatrace.starthelper %>
+export START_HELPER="<%= properties.dynatrace.starthelper %>"
 
 export TMPDIR=/var/vcap/data/tmp
 
