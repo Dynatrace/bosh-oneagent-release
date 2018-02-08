@@ -4,6 +4,10 @@ export START_HELPER="<%= properties.dynatrace.starthelper %>"
 
 INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
 
+installLog() {
+    echo "$1" | tee -a "${LOG_FILE}"
+}
+
 stopOneAgentHelper() {
   if pgrep -x "oneagenthelper" > /dev/null
   then
