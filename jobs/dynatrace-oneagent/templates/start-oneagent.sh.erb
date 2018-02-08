@@ -9,16 +9,16 @@ checkForInstaller() {
     while [[ $installerRetries -ge 0 ]]; do
         pgrep -f Dynatrace-OneAgent > /dev/null
         local installerFound=$?
-        if [[ ! $installerFound ]]; then
+        if [[ $installerFound -eq 1 ]]; then
             break
-        elif [[ ! $installerFound ]] && [[ $installerRetries -lt 10 ]]; then
+        elif [[ ! $installerFound -eq 0 ]] && [[ $installerRetries -lt 10 ]]; then
             break
         elif [[ $installerFound ]] && [[ $installerRetries -gt 0 ]]; then
             echo "Installer instance found running, waiting 30 seconds before retrying, $((installerRetries-1)) retries left"
             sleep 30
             installerRetries=$((installerRetries-1))
             continue
-        elif [[ $installerFound ]] && [[ $installerRetries -lt 1 ]]; then
+        elif [[ $installerFound -eq 0 ]] && [[ $installerRetries -lt 1 ]]; then
             echo "ERROR: Waiting for other installer to end took too long"
             exit 1
         fi
