@@ -39,6 +39,8 @@ uninstallOneAgent() {
 
     installLog "Cleaning up ${agentDir}..."
     rm -rf ${agentDir}
+    #/var/lib/dynatrace
+    #/var/log/dynatrace
 
     if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
         installLog "Removing broken symlink ${leftoverSymlink}"
