@@ -9,7 +9,6 @@ export API_TOKEN="<%= properties.dynatrace.apitoken %>"
 export API_URL="<%= properties.dynatrace.apiurl %>"
 export SSL_MODE="<%= properties.dynatrace.sslmode %>"
 export APP_LOG_CONTENT_ACCESS="<%= properties.dynatrace.applogaccess %>"
-export START_HELPER="<%= properties.dynatrace.starthelper %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
@@ -109,19 +108,6 @@ downloadAgent() {
     fi
 }
 
-startOneAgentHelper() {
-    local oneagentHelperCommand="${1}/agent/lib64/oneagenthelper"
-  #gdn is the daemon for garden-runc >= 1.2.0
-  if gardenProcess=$(pgrep -x "gdn"); then
-    installLog "Found gdn process. Starting oneagenthelper..."
-  #guardian is the daemon for garden-runc < 1.2.0
-  elif gardenProcess=$(pgrep -x "guardian"); then
-    installLog "Found guardian process. Starting oneagenthelper..."
-  fi
-
-  "${oneagentHelperCommand}" -p "$(pgrep -x "${gardenProcess}")" --garden &
-}
-
 runInstaller() {
     local installerRetries=10
 
@@ -167,11 +153,6 @@ fi
 
 runInstaller
 
-# Start oneagenthelper manually
-if [[ "$START_HELPER" != "0" ]]; then
-    installLog "starthelper is enabled"
-    startOneAgentHelper "${INSTALL_DIR}"
-fi
 setWatchdogPid
 
 rm -r "$TMPDIR"
