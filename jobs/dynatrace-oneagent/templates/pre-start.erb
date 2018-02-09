@@ -14,7 +14,7 @@ export TMPDIR="/var/vcap/data/dt_tmp"
 
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
 LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
-LOG_FILE=$LOG_DIR/dynatrace-install.log
+LOG_FILE="$LOG_DIR/dynatrace-install.log"
 if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}"; then
     installLog "ERROR: Creating directories ${RUN_DIR} and ${LOG_DIR} failed!"
     exit 1
@@ -28,7 +28,6 @@ if [[ "$PROXY" != "" ]]; then
     export http_proxy="$PROXY"
 fi
 
-# set default to on
 if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
     ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
 fi
@@ -146,14 +145,11 @@ fi
 INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
 downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
 
-if [[ -d "${INSTALL_DIR}" ]]; then
-  installLog "Found leftovers in ${INSTALL_DIR}"
-  uninstallOneAgent
-fi
-
 runInstaller
 
 setWatchdogPid
 
 rm -r "$TMPDIR"
+
+installLog "Installation finished"
 

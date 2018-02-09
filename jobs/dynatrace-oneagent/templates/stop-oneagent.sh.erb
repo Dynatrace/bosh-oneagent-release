@@ -1,57 +1,39 @@
 #!/bin/bash
 
-export START_HELPER="<%= properties.dynatrace.starthelper %>"
-
 INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
 
 installLog() {
     echo "$1" | tee -a "${LOG_FILE}"
 }
 
-stopOneAgentHelper() {
-  if pgrep -x "oneagenthelper" > /dev/null
-  then
-    installLog "Stopping oneagenthelper..."
-    pkill -x oneagenthelper
-    installLog "Done"
-  fi
-}
+installLog "Trying to uninstall the OneAgent..."
 
-uninstallOneAgent() {
-    installLog "Trying to uninstall the OneAgent..."
+agentDir="${INSTALL_DIR}"
+leftoverSymlink="/opt/dynatrace/oneagent"
+dynatraceLibDir="/var/lib/dynatrace"
+dynatraceLogDir="/var/vcap/data/sys/log/dynatrace-oneagent"
 
-    local agentDir="${INSTALL_DIR}"
-    local leftoverSymlink="/opt/dynatrace/oneagent"
-    local dynatraceLibDir="/var/lib/dynatrace"
-    local dynatraceLogDir="/var/vcap/data/sys/log/dynatrace-oneagent"
+if [[ ! -d "${agentDir}" ]]; then
+    # fallback to cover previous versions of addon
+    agentDir="/opt/dynatrace/oneagent"
+fi
 
-    if [[ ! -d "${agentDir}" ]]; then
-        # fallback to cover previous versions of addon
-        agentDir="/opt/dynatrace/oneagent"
-    fi
+if [[ -f "${agentDir}/agent/uninstall.sh" ]]; then
+    installLog "Found uninstall script to run..."
+    sh "${agentDir}/agent/uninstall.sh" 2>&1 | tee -a "${LOG_FILE}"
+fi
 
-    if [[ "$START_HELPER" != "0" ]]; then
-        stopOneAgentHelper
-    fi
+installLog "Cleaning up ${agentDir}..."
+rm -rf ${agentDir}
+if [[ -d "${dynatraceLibDir}" ]]; then
+    rm -rf "${dynatraceLibDir}"
+fi
+if [[ -d "${dynatraceLogDir}" ]]; then
+    rm -rf "${dynatraceLogDir}"
+fi
 
-    if [[ -f "${agentDir}/agent/uninstall.sh" ]]; then
-        installLog "Found uninstall script to run..."
-        sh "${agentDir}/agent/uninstall.sh" 2>&1 | tee -a "${LOG_FILE}"
-    fi
+if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
+    installLog "Removing broken symlink ${leftoverSymlink}"
+    rm "${leftoverSymlink}"
+fi
 
-    installLog "Cleaning up ${agentDir}..."
-    rm -rf ${agentDir}
-    if [[ -d "${dynatraceLibDir}" ]]; then
-        rm -rf "${dynatraceLibDir}"
-    fi
-    if [[ -d "${dynatraceLogDir}" ]]; then
-        rm -rf "${dynatraceLogDir}"
-    fi
-
-    if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
-        installLog "Removing broken symlink ${leftoverSymlink}"
-        rm "${leftoverSymlink}"
-    fi
-}
-
-uninstallOneAgent
