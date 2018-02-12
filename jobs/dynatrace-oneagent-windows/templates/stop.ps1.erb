@@ -1,0 +1,23 @@
+# This removes following domains from the trusted sites store:
+# * dynatrace.com
+# * dynatrace-managed.com
+# * the domain given in the optional downloadurl parameter
+
+$cfgDownloadUrl = "<%= properties.dynatrace.downloadurl %>"
+$addDomains = @()
+$addDomains = "dynatrace.com", "dynatrace-managed.com"
+
+If ($cfgDownloadUrl -ne "") {
+    $splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
+    $customDownloadUrl = $cfgDownloadUrl.Split("//", $splitOptions)[1].Split("/", $splitOptions)[0]
+    $addDomains += "$customDownloadUrl"
+}
+
+$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains"
+
+foreach($domain in $addDomains) {
+    If(Test-Path "$registryPath\$domain") {
+        Remove-Item "$registryPath\$domain" -Recurse
+        Write-Output "Removed $domain from trusted sites"
+    } 
+}
