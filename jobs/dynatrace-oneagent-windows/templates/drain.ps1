@@ -26,4 +26,22 @@ If ((Get-Service dynatrace-oneagent-windows).Status -eq "Running") {
     Write-Output 'success' | Out-File -Encoding utf8 $drainLogFile
 }
 
+$removeDomains = @()
+$removeDomains = "dynatrace.com", "dynatrace-managed.com"
+
+If ($cfgDownloadUrl -ne "") {
+    $splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
+    $customDownloadUrl = $cfgDownloadUrl.Split("//", $splitOptions)[1].Split("/", $splitOptions)[0]
+    $removeDomains += "$customDownloadUrl"
+}
+
+$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains"
+
+foreach($domain in $removeDomains) {
+    If(Test-Path "$registryPath\$domain") {
+        Remove-Item "$registryPath\$domain" -Recurse
+        Write-Output "Removed $domain from trusted sites"
+    } 
+}
+
 Exit 0

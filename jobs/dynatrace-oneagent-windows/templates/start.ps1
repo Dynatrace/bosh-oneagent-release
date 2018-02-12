@@ -135,21 +135,45 @@ function downloadAgent($src, $dest) {
 }
 
 function configureProxySettings() {
-	if ($cfgProxy) {
-		installLog "INFO" "Proxy settings found, setting system proxy to $cfgProxy"
+    if ($cfgProxy) {
+        installLog "INFO" "Proxy settings found, setting system proxy to $cfgProxy"
 
-		try {
-			$reg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+        try {
+            $reg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
 
-			Set-ItemProperty -Path $reg -Name ProxyServer -Value $cfgProxy
-			Set-ItemProperty -Path $reg -Name ProxyEnable -Value 1
-		} catch {
-			installLog "ERROR" "Setting system proxy failed!"
-			Exit 1
-		}
-	}
+            Set-ItemProperty -Path $reg -Name ProxyServer -Value $cfgProxy
+            Set-ItemProperty -Path $reg -Name ProxyEnable -Value 1
+        } catch {
+            installLog "ERROR" "Setting system proxy failed!"
+            Exit 1
+        }
+    }
 }
 
+function addTrustedSites() {
+    $addDomains = @()
+    $addDomains = "dynatrace.com", "dynatrace-managed.com"
+
+    If ($cfgDownloadUrl -ne "") {
+        $splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
+        $customDownloadUrl = $cfgDownloadUrl.Split("//", $splitOptions)[1].Split("/", $splitOptions)[0]
+        $addDomains += "$customDownloadUrl"
+    }
+
+    $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains"
+    $DWord = 2
+
+    foreach($domain in $addDomains) {
+        If(-Not (Test-Path "$registryPath\$domain")) {
+            New-Item -Path "$registryPath" -ItemType File -Name "$domain" | Out-Null
+            Set-ItemProperty -Path $registryPath -Name "https" -Value $DWord | Out-Null
+            Write-Output "Added $domain to trusted sites"
+        }
+        Else {
+            Write-Output "Registry key for $domain already exists"
+        }
+    }
+}
 # ==================================================
 # main section
 # ==================================================
@@ -163,6 +187,7 @@ If(!(Test-Path $agentExpandPath)) {
 }
 
 configureProxySettings
+addTrustedSites
 
 # download mode setup
 if ($cfgDownloadUrl.length -eq 0){
