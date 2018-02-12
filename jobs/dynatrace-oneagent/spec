@@ -6,7 +6,6 @@ templates:
   pre-start.erb: bin/pre-start
   start-oneagent.sh.erb: bin/start-oneagent.sh
   stop-oneagent.sh.erb: bin/stop-oneagent.sh
-  common.sh.erb: bin/common.sh
 
 packages:
 
