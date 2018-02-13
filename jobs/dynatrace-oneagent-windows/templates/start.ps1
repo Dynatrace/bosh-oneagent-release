@@ -150,30 +150,6 @@ function configureProxySettings() {
     }
 }
 
-function addTrustedSites() {
-    $addDomains = @()
-    $addDomains = "dynatrace.com", "dynatrace-managed.com"
-
-    If ($cfgDownloadUrl -ne "") {
-        $splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
-        $customDownloadUrl = $cfgDownloadUrl.Split("//", $splitOptions)[1].Split("/", $splitOptions)[0]
-        $addDomains += "$customDownloadUrl"
-    }
-
-    $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains"
-    $DWord = 2
-
-    foreach($domain in $addDomains) {
-        If(-Not (Test-Path "$registryPath\$domain")) {
-            New-Item -Path "$registryPath" -ItemType File -Name "$domain" | Out-Null
-            Set-ItemProperty -Path $registryPath -Name "https" -Value $DWord | Out-Null
-            Write-Output "Added $domain to trusted sites"
-        }
-        Else {
-            Write-Output "Registry key for $domain already exists"
-        }
-    }
-}
 # ==================================================
 # main section
 # ==================================================
@@ -187,7 +163,6 @@ If(!(Test-Path $agentExpandPath)) {
 }
 
 configureProxySettings
-addTrustedSites
 
 # download mode setup
 if ($cfgDownloadUrl.length -eq 0){
@@ -260,7 +235,6 @@ while (!(Test-Path "$exitHelperFile")) {
 installLog "INFO" "Uninstalling $dynatraceServiceName..."
 
 $app = Get-WMiObject -Class Win32_Product | Where-Object { $_.Name -match "$dynatraceServiceName" }
-CleanupAll
 if ($app) {
 	$app.Uninstall() >$null 2>&1
 	installLog "INFO" "Uninstalling $dynatraceServiceName done"
@@ -268,6 +242,7 @@ if ($app) {
 	installLog "WARNING" "$dynatraceServiceName not found in installed products"
 }
 
+CleanupAll
 installLog "INFO" "Exiting ..."
 
 Exit 0

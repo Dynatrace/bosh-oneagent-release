@@ -1,0 +1,30 @@
+# This adds following domains to trusted sites:
+# * dynatrace.com
+# * dynatrace-managed.com
+# * the domain of an optional custom download URL, if provided
+
+$cfgDownloadUrl = "<%= properties.dynatrace.downloadurl %>"
+$addDomains = @()
+$addDomains = "dynatrace.com", "dynatrace-managed.com"
+
+If ($cfgDownloadUrl -ne "") {
+    $splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
+    $customDownloadUrl = $cfgDownloadUrl.Split("//", $splitOptions)[1].Split("/", $splitOptions)[0]
+    If( $customDownloadUrl -match "[a-zA-Z0-9]") {
+        $addDomains += "$customDownloadUrl"
+    }
+}
+
+$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains"
+$DWord = 2
+
+foreach($domain in $addDomains) {
+    If(-Not (Test-Path "$registryPath\$domain")) {
+        New-Item -Path "$registryPath" -ItemType File -Name "$domain" | Out-Null
+        Set-ItemProperty -Path $registryPath -Name "https" -Value $DWord | Out-Null
+        Write-Output "Added $domain to trusted sites"
+    }
+    Else {
+        Write-Output "Registry key for $domain already exists"
+    }
+}
