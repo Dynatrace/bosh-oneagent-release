@@ -3,6 +3,7 @@ $dynatraceServiceName = "Dynatrace OneAgent"
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains"
 $removeDomains = @()
 $removeDomains = "dynatrace.com", "dynatrace-managed.com"
+$cfgDownloadUrl = "<%= properties.dynatrace.downloadurl %>"
 
 If ($cfgDownloadUrl -ne "" -and $cfgDownloadUrl -match "^https:\/\/") {
     $splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
@@ -25,26 +26,17 @@ do {
 foreach($domain in $removeDomains) {
     If(Test-Path "$registryPath\$domain") {
         Remove-Item "$registryPath\$domain" -Recurse
-        Write-Output "Removed $domain from trusted sites"
+        Write-Output "Removed $domain from trusted sites" | Out-File -Encoding utf8 $drainLogFile
     } 
 }
 Start-Sleep -s 15
 
-if ((Get-Service -Name "${dynatraceServiceName}").Status -ne "Running") {
-    Write-Output "$(Get-Date): service '${dynatraceServiceName}' not running" >> $LOGFILE
-    Write-Host "0"
-    Exit 0
-}
-
-If ((Get-Service dynatrace-oneagent-windows).Status -eq "Running") {
-    Write-Output 'failed' | Out-File -Encoding utf8 $drainLogFile
-    Exit 1
-} Else {
+If ((Get-Service dynatrace-oneagent-windows -ErrorAction SilentlyContinue).Status -ne "Running") {
     Write-Output 'success' | Out-File -Encoding utf8 $drainLogFile
-    Write-Host "0"
-    Exit 0
+} Else {
+    Write-Output 'failed' | Out-File -Encoding utf8 $drainLogFile
+    Write-Host 1
 }
 
+Write-Host 0
 
-
-Exit 0
