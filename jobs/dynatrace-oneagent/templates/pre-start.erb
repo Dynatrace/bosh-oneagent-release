@@ -109,6 +109,12 @@ downloadAgent() {
 
 runInstaller() {
     local installerRetries=10
+    leftoverSymlink="/opt/dynatrace/oneagent"
+
+    if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
+        installLog "Removing broken symlink ${leftoverSymlink}"
+        rm "${leftoverSymlink}"
+    fi
 
     #check if another installer is running
     while [[ $installerRetries -ge 0 ]]; do
