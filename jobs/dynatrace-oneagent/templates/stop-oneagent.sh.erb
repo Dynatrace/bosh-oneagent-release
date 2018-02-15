@@ -1,39 +1,14 @@
 #!/bin/bash
 
+oneagentInitScript="/etc/init.d/oneagent"
 INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
 
-installLog() {
-    echo "$1" | tee -a "${LOG_FILE}"
-}
-
-installLog "Trying to uninstall the OneAgent..."
-
-agentDir="${INSTALL_DIR}"
-leftoverSymlink="/opt/dynatrace/oneagent"
-dynatraceLibDir="/var/lib/dynatrace"
-dynatraceLogDir="/var/vcap/data/sys/log/dynatrace-oneagent"
-
-if [[ ! -d "${agentDir}" ]]; then
-    # fallback to cover previous versions of addon
-    agentDir="/opt/dynatrace/oneagent"
+if [[ -f "${oneagentInitScript}" ]]; then
+    "${oneagentInitScript}" stop
+elif [[ ! -d "${INSTALL_DIR}" ]]; then
+    echo "Dynatrace OneAgent already uninstalled"
+    exit 0
+else
+    echo "ERROR: ${oneagentInitScript} not found!"
+    exit 1
 fi
-
-if [[ -f "${agentDir}/agent/uninstall.sh" ]]; then
-    installLog "Found uninstall script to run..."
-    sh "${agentDir}/agent/uninstall.sh" 2>&1 | tee -a "${LOG_FILE}"
-fi
-
-installLog "Cleaning up ${agentDir}..."
-rm -rf ${agentDir}
-if [[ -d "${dynatraceLibDir}" ]]; then
-    rm -rf "${dynatraceLibDir}"
-fi
-if [[ -d "${dynatraceLogDir}" ]]; then
-    rm -rf "${dynatraceLogDir}"
-fi
-
-if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
-    installLog "Removing broken symlink ${leftoverSymlink}"
-    rm "${leftoverSymlink}"
-fi
-
