@@ -114,6 +114,9 @@ runInstaller() {
     if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
         installLog "Removing broken symlink ${leftoverSymlink}"
         rm "${leftoverSymlink}"
+    elif [[ -d "${leftoverSymlink}" ]]; then
+        installLog "Removing leftover directory ${leftoverSymlink}"
+        rm -rf "${leftoverSymlink}"
     fi
 
     #check if another installer is running
