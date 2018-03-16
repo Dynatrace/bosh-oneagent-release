@@ -2,19 +2,24 @@
 
 export PATH="/var/vcap/packages/dynatrace-oneagent:$PATH"
 
-export DOWNLOADURL="<%= properties.dynatrace.downloadurl %>"
-export PROXY="<%= properties.dynatrace.proxy %>"
-export ENV_ID="<%= properties.dynatrace.environmentid %>"
-export API_TOKEN="<%= properties.dynatrace.apitoken %>"
-export API_URL="<%= properties.dynatrace.apiurl %>"
-export SSL_MODE="<%= properties.dynatrace.sslmode %>"
-export APP_LOG_CONTENT_ACCESS="<%= properties.dynatrace.applogaccess %>"
+export DOWNLOADURL="<%= p("dynatrace.downloadurl") %>"
+export PROXY="<%= p("dynatrace.proxy") %>"
+export ENV_ID="<%= p("dynatrace.environmentid") %>"
+export API_TOKEN="<%= p("dynatrace.apitoken") %>"
+export API_URL="<%= p("dynatrace.apiurl") %>"
+export SSL_MODE="<%= p("dynatrace.sslmode") %>"
+export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
 LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
 LOG_FILE="$LOG_DIR/dynatrace-install.log"
+
+installLog() {
+    echo "$1" | tee -a "${LOG_FILE}"
+}
+
 if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}"; then
     installLog "ERROR: Creating directories ${RUN_DIR} and ${LOG_DIR} failed!"
     exit 1
@@ -141,10 +146,6 @@ runInstaller() {
         fi
 
     done
-}
-
-installLog() {
-    echo "$1" | tee -a "${LOG_FILE}"
 }
 
 # Installation process starts here
