@@ -1,18 +1,8 @@
 check process dynatrace-oneagent
   with pidfile /var/vcap/sys/run/dynatrace-oneagent/dynatrace-watchdog.pid
-  start program "/var/vcap/jobs/dynatrace-oneagent/bin/dynatrace-oneagent.sh start"
+  start program "/var/vcap/jobs/dynatrace-oneagent/bin/start-oneagent.sh"
     with timeout 600 seconds
-  stop program "/var/vcap/jobs/dynatrace-oneagent/bin/dynatrace-oneagent.sh stop"
+  stop program "/var/vcap/jobs/dynatrace-oneagent/bin/stop-oneagent.sh"
     with timeout 120 seconds
   group vcap
 
-<% if p('dynatrace.starthelper') && p('dynatrace.starthelper') != 0 %> 
-check process dynatrace-oneagenthelper
-  with pidfile /var/vcap/sys/run/dynatrace-oneagent/dynatrace-oneagenthelper.pid
-  start program "/var/vcap/jobs/dynatrace-oneagent/bin/dynatrace-oneagenthelper.sh start"
-    with timeout 10 seconds
-  stop program "/var/vcap/jobs/dynatrace-oneagent/bin/dynatrace-oneagenthelper.sh stop"
-    with timeout 5 seconds
-  depends on dynatrace-oneagent
-  group vcap
-<% end %>

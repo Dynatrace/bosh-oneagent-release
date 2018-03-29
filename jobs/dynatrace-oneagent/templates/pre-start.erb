@@ -1,3 +1,165 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-/var/vcap/jobs/dynatrace-oneagent/bin/dynatrace-oneagent.sh start
+export PATH="/var/vcap/packages/dynatrace-oneagent:$PATH"
+
+export DOWNLOADURL="<%= p("dynatrace.downloadurl") %>"
+export PROXY="<%= p("dynatrace.proxy") %>"
+export ENV_ID="<%= p("dynatrace.environmentid") %>"
+export API_TOKEN="<%= p("dynatrace.apitoken") %>"
+export API_URL="<%= p("dynatrace.apiurl") %>"
+export SSL_MODE="<%= p("dynatrace.sslmode") %>"
+export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
+
+export TMPDIR="/var/vcap/data/dt_tmp"
+
+RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
+LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
+LOG_FILE="$LOG_DIR/dynatrace-install.log"
+
+installLog() {
+    echo "$1" | tee -a "${LOG_FILE}"
+}
+
+if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}"; then
+    installLog "ERROR: Creating directories ${RUN_DIR} and ${LOG_DIR} failed!"
+    exit 1
+fi
+
+ARGS=""
+if [[ "$PROXY" != "" ]]; then
+    installLog "Setting proxy to ${PROXY}"
+    ARGS="$ARGS PROXY=$PROXY"
+    export https_proxy="$PROXY"
+    export http_proxy="$PROXY"
+fi
+
+if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
+    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
+fi
+
+# set downloadurl to fallback if not given
+if [[ "$DOWNLOADURL" == "" ]]; then
+    if [[ "$ENV_ID" == "" ]] || [[ "$API_TOKEN" == "" ]]; then
+        installLog "Invalid configuration:"
+        installLog "Please set environment ID and API token for Dynatrace OneAgent."
+        exit 1
+    fi
+    if [[ "$API_URL" == "" ]]; then
+        API_URL="https://$ENV_ID.live.dynatrace.com/api"
+    fi
+    DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
+fi
+
+SSL_INSECURE_CURL=""
+SSL_INSECURE_WGET=""
+if [[ "$SSL_MODE" == "all" ]]; then
+    installLog "accepting all ssl certificates for agent download"
+    SSL_INSECURE_CURL="--insecure"
+    SSL_INSECURE_WGET="--no-check-certificate"
+fi
+
+INSTALL_BASE_DIR="/var/vcap/data"
+if [[ -d ${INSTALL_BASE_DIR} ]] && [[ $(df --output=avail -m ${INSTALL_BASE_DIR} | awk '{if (NR==2) {print $1}}') -gt 2048 ]]; then
+    INSTALL_DIR="${INSTALL_BASE_DIR}/dynatrace/oneagent"
+else
+    installLog "Not enough disk space available on ${INSTALL_BASE_DIR}!"
+    exit 1
+fi
+
+setWatchdogPid() {
+    local AGENT_WATCHDOG="oneagentwatchdog"
+
+    echo "Setting ${AGENT_WATCHDOG} pid"
+    watchdogPID=$(pgrep -f "${AGENT_WATCHDOG}")
+    echo "${watchdogPID}" > "${RUN_DIR}/dynatrace-watchdog.pid"
+}
+
+downloadAgent() {
+    local downloadUrl=$1
+    local installerFile=$2
+
+    if curl -h &> /dev/null ; then
+        local downloadCommand="curl -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile}"
+    elif wget -h &> /dev/null ; then
+        local downloadCommand="wget --connect-timeout=10 $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile}"
+    else
+        installLog "ERROR: Neither curl nor wget executable found!"
+        exit 1
+    fi
+
+    local retryTimeout=0
+    local downloadErrors=0
+    while [[ $downloadErrors -lt 3 ]]; do
+        sleep $retryTimeout
+
+        installLog "Downloading agent installer from ${downloadUrl}"
+        $downloadCommand
+        if [[ $? != 0 ]]; then
+            downloadErrors=$((downloadErrors+1))
+            retryTimeout=$($retryTimeout+5)
+
+            if [[ $downloadErrors -lt 3 ]]; then
+                installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
+            fi
+        else
+            break
+        fi
+    done
+
+    if [[ $downloadErrors == 3 ]]; then
+        installLog "ERROR: Downloading agent installer failed!"
+        exit 1
+    fi
+}
+
+runInstaller() {
+    local installerRetries=10
+    leftoverSymlink="/opt/dynatrace/oneagent"
+
+    if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
+        installLog "Removing broken symlink ${leftoverSymlink}"
+        rm "${leftoverSymlink}"
+    elif [[ -d "${leftoverSymlink}" ]]; then
+        installLog "Removing leftover directory ${leftoverSymlink}"
+        rm -rf "${leftoverSymlink}"
+    fi
+
+    #check if another installer is running
+    while [[ $installerRetries -ge 0 ]]; do
+        pgrep -f Dynatrace-OneAgent > /dev/null
+        local installerFound=$?
+        if [[ $installerFound -eq 1 ]]; then
+            sh "${INSTALLER_FILE}" ${ARGS} INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
+            break
+        elif [[ $installerFound -eq 1 ]] && [[ $installerRetries -lt 10 ]]; then
+            # since there already ran an installer a moment ago,
+            # there is no point in running it again just now
+            break
+        elif [[ $installerFound -eq 0 ]] && [[ $installerRetries -gt 0 ]]; then
+            installLog "Another installer instance found running, waiting 30 seconds before retrying, $((installerRetries-1)) retries left"
+            sleep 30
+            installerRetries=$((installerRetries-1))
+            continue
+        elif [[ $installerFound -eq 0 ]] && [[ $installerRetries -lt 1 ]]; then
+            installLog "ERROR: Waiting for other installer to end took too long"
+            exit 1
+        fi
+
+    done
+}
+
+# Installation process starts here
+if [[ ! -d "${TMPDIR}" ]]; then
+    mkdir -p "${TMPDIR}"
+fi
+INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
+downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
+
+runInstaller
+
+setWatchdogPid
+
+rm -r "$TMPDIR"
+
+installLog "Installation finished"
+

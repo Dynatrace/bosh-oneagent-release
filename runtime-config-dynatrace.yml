@@ -30,7 +30,6 @@ addons:
     dynatrace:
       environmentid: abc12345
       apitoken: bvQ0e--secret--2fEL9B
-      starthelper: 1
 
 - name: dynatrace-oneagent-windows-addon
   jobs:
