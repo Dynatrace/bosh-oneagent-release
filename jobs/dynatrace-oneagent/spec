@@ -1,12 +1,12 @@
 ---
 name: dynatrace-oneagent
-description: "This is a job that will run Dynatrace OneAgent installer for Linux"
+description: "This job will run Dynatrace OneAgent installer for Linux"
 
 templates:
-  dynatrace-oneagent.sh.erb: bin/dynatrace-oneagent.sh
-  dynatrace-oneagenthelper.sh.erb: bin/dynatrace-oneagenthelper.sh
-  common.sh.erb: bin/common.sh
   pre-start.erb: bin/pre-start
+  start-oneagent.sh.erb: bin/start-oneagent.sh
+  stop-oneagent.sh.erb: bin/stop-oneagent.sh
+  drain.erb: bin/drain
 
 packages:
 
@@ -32,9 +32,6 @@ properties:
   dynatrace.applogaccess:
     description: 'Enable access to discovered application log files content'
     default: '1'
-  dynatrace.starthelper:
-    description: 'Temporary switch for starting oneagenthelper from bosh job'
-    default: 0
   dynatrace.host_tags:
     description: 'Host tags for this VM. Format like DT_TAGS ENV variable: single line, space separated pairs of <key>=<value>'
     default: ''

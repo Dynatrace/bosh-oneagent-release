@@ -1,0 +1,52 @@
+#!/bin/bash
+
+INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
+LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
+DRAIN_LOG="$LOG_DIR/drain.log"
+
+installLog() {
+    echo "$1" >> "${DRAIN_LOG}"
+}
+
+installLog "Uninstalling the OneAgent..."
+
+agentDir="${INSTALL_DIR}"
+leftoverSymlink="/opt/dynatrace/oneagent"
+dynatraceLibDir="/var/lib/dynatrace"
+dynatraceLogDir="/var/vcap/data/sys/log/dynatrace-oneagent"
+
+if [[ ! -d "${agentDir}" ]]; then
+    # fallback to cover previous versions of addon
+    agentDir="/opt/dynatrace/oneagent"
+fi
+
+if [[ -f "${agentDir}/agent/uninstall.sh" ]]; then
+    installLog "Found uninstall script to run..."
+    sh "${agentDir}/agent/uninstall.sh" >> "${DRAIN_LOG}" 2>&1
+    if [[ $? -ne 0 ]]; then
+        installLog "ERROR: Uninstall script failed!"
+        echo "1"
+        exit 1
+    fi
+fi
+
+installLog "Cleaning up ${agentDir}..."
+if [[ -d "${agentDir}" ]]; then
+    rm -rf ${agentDir}
+fi
+
+if [[ -d "${dynatraceLibDir}" ]]; then
+    rm -rf "${dynatraceLibDir}"
+fi
+
+if [[ -d "${dynatraceLogDir}" ]]; then
+    rm -rf "${dynatraceLogDir}"
+fi
+
+if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
+    installLog "Removing broken symlink ${leftoverSymlink}"
+    rm "${leftoverSymlink}"
+fi
+
+echo "0"
+exit 0
