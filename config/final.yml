@@ -1,1 +1,6 @@
+---
 name: dynatrace-oneagent
+blobstore:
+    provider: local
+    options:
+        blobstore_path: /tmp/dynatrace-oneagent-blobs
