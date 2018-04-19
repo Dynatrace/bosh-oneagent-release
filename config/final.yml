@@ -1,8 +1,6 @@
 ---
-name: dynatrace-oneagent
-# local blobstore only because we don't have any blobs,
-# but bosh refuses to create final releases if there is none configured
+final_name: dynatrace-oneagent
 blobstore:
-    provider: local
+    provider: s3
     options:
-        blobstore_path: /tmp/dynatrace-oneagent-blobs
+        bucket_name: bosh-oneagent-release-blobs
