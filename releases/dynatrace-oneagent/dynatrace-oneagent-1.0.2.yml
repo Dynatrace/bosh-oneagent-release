@@ -1,7 +1,7 @@
 name: dynatrace-oneagent
-version: 1.0.1
-commit_hash: 7a09adc
-uncommitted_changes: false
+version: 1.0.2
+commit_hash: "9265007"
+uncommitted_changes: true
 jobs:
 - name: dynatrace-oneagent
   version: a1da472a574193d655ceb89e68d3f9920512fc4d
