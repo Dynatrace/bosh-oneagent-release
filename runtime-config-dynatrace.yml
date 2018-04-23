@@ -28,15 +28,23 @@ addons:
     - {name: install-hwc-buildpack, release: hwc-buildpack}
   properties:
     dynatrace:
-      environmentid: abc12345
-      apitoken: bvQ0e--secret--2fEL9B
+      environmentid: <environmentId>
+      apitoken: <token>
+      ###
       # optional properties below
+      ###
+      # Replace with your Dynatrace Managed URL, including the environment ID.
+      # An example URL might look like the following
       apiurl: https://{your-managed-cluster.com}/e/{environmentid}/api
+      # Set to 'all' if you want to accept all self-signed SSL certificates.
       sslmode: all
+      # Specify a direct download URL for Dynatrace OneAgent.
+      # If this propery is set, BOSH will download OneAgent from this location.
       downloadurl: https://direct-download-url-for-agent
+      # Specify the proxy to be used for communication.
       proxy: https://your-proxy-url
 
-
+# optional: extra addon configuration for Windows cells
 - name: dynatrace-oneagent-windows-addon
   jobs:
   - name: dynatrace-oneagent-windows
