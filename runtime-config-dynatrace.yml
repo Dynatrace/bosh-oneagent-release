@@ -1,6 +1,6 @@
 releases:
 - name: dynatrace-oneagent
-  version: 0.3.3
+  version: 1.0.2
 
 addons:
 - name: dynatrace-oneagent-addon
@@ -30,6 +30,12 @@ addons:
     dynatrace:
       environmentid: abc12345
       apitoken: bvQ0e--secret--2fEL9B
+      # optional properties below
+      apiurl: https://{your-managed-cluster.com}/e/{environmentid}/api
+      sslmode: all
+      downloadurl: https://direct-download-url-for-agent
+      proxy: https://your-proxy-url
+
 
 - name: dynatrace-oneagent-windows-addon
   jobs:
