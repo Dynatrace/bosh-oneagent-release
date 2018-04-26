@@ -8,7 +8,7 @@ templates:
   stop-oneagent.sh.erb: bin/stop-oneagent.sh
   drain.erb: bin/drain
 
-packages:
+packages: []
 
 properties:
   dynatrace.environmentid:
