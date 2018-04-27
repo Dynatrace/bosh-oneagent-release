@@ -6,7 +6,7 @@ templates:
   start.ps1: bin/start.ps1
   drain.ps1: bin/drain.ps1
 
-packages:
+packages: []
 
 properties:
   dynatrace.environmentid:
