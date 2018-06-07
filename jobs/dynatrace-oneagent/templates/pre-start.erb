@@ -15,6 +15,8 @@ export TMPDIR="/var/vcap/data/dt_tmp"
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
 LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
 LOG_FILE="$LOG_DIR/dynatrace-install.log"
+CONFIG_DIR="/var/lib/dynatrace/oneagent/agent/config"
+ONEAGENT_INIT_FILE="/etc/init.d/oneagent"
 
 installLog() {
     echo "$1" | tee -a "${LOG_FILE}"
@@ -148,6 +150,15 @@ runInstaller() {
     done
 }
 
+setHostName() {
+    <% if not p('dynatrace.hostname').blank? %>
+        echo "<%= p('dynatrace.hostname') %>" > ${CONFIG_DIR}/hostname.conf
+    <% else %>
+        #do nothing
+        :
+    <% end %>
+}
+
 # Installation process starts here
 if [[ ! -d "${TMPDIR}" ]]; then
     mkdir -p "${TMPDIR}"
@@ -156,6 +167,18 @@ INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
 downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
 
 runInstaller
+
+setHostName
+
+# Since the Installer-Script will already start the oneAgent process,
+# we need to restart it, to apply the new settings.
+
+if [[ -f "${ONEAGENT_INIT_FILE}" ]]; then
+    "${ONEAGENT_INIT_FILE}" restart
+else
+    echo "ERROR: ${ONEAGENT_INIT_FILE} not found!"
+    exit 1
+fi
 
 setWatchdogPid
 
