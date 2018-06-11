@@ -12,6 +12,7 @@ $cfgEnvironmentId = "<%= properties.dynatrace.environmentid %>"
 $cfgApiToken = "<%= properties.dynatrace.apitoken %>"
 $cfgApiUrl = "<%= properties.dynatrace.apiurl %>"
 $cfgSslMode = "<%= properties.dynatrace.sslmode %>"
+$cfgHostName = "<%= properties.dynatrace.hostname %>"
 
 $oneagentwatchdogProcessName = "oneagentwatchdog"
 $tempDir = "/var/vcap/data/dt_tmp"
@@ -21,6 +22,7 @@ $logDir = "/var/vcap/sys/log/dynatrace-oneagent-windows"
 $logFile = "$logDir/dynatrace-install.log"
 $dynatraceServiceName = "Dynatrace OneAgent"
 $exitHelperFile = "/var/vcap/jobs/dynatrace-oneagent-windows/exit"
+$configPath = "/ProgramData/dynatrace/oneagent/agent/config"
 
 # ==================================================
 # function section
@@ -150,6 +152,20 @@ function configureProxySettings() {
     }
 }
 
+function setHostName()
+{
+    if ($cfgHostName) {
+        installLog "INFO" "hostname settings found, setting Host-Name to $cfgHostName"
+
+        try {
+            echo $cfgHostName | new-item -force -path "$configPath/hostname.conf" -type file
+        } catch {
+            installLog "ERROR" "Setting Host-Name failed!"
+            Exit 1
+        }
+  }
+}
+
 # ==================================================
 # main section
 # ==================================================
@@ -191,6 +207,9 @@ try {
 	installLog "ERROR" "Failed to extract $installerFile to $agentExpandPath"
 	Exit 1
 }
+
+#Set the Host-Name
+setHostName
 
 #run the installer
 try {

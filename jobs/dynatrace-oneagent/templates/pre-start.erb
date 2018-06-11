@@ -15,6 +15,8 @@ export TMPDIR="/var/vcap/data/dt_tmp"
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
 LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
 LOG_FILE="$LOG_DIR/dynatrace-install.log"
+CONFIG_DIR="/var/lib/dynatrace/oneagent/agent/config"
+ONEAGENT_INIT_FILE="/etc/init.d/oneagent"
 
 installLog() {
     echo "$1" | tee -a "${LOG_FILE}"
@@ -148,12 +150,40 @@ runInstaller() {
     done
 }
 
+# Taken from Dynatrace Linux setup script
+createDirIfNotExistAndSetRights() {
+  local dir="${1}"
+  local rights="${2}"
+  if [ ! -d "${dir}" ]; then
+    if ! mkdir -p "${dir}"; then
+      installLog "Cannot create ${dir} directory."
+    fi
+  fi
+
+  if ! chmod "${rights}" "${dir}"; then
+    installLog "Cannot change permisions of ${dir} directory to ${rights}."
+  fi
+}
+
+setHostName() {
+    <% if not p('dynatrace.hostname').blank? %>
+        installLog "INFO hostname settings found, setting Host-Name to <%= p('dynatrace.hostname') %>"
+        createDirIfNotExistAndSetRights ${CONFIG_DIR} 755
+        echo "<%= p('dynatrace.hostname') %>" > ${CONFIG_DIR}/hostname.conf
+    <% else %>
+        #do nothing
+        :
+    <% end %>
+}
+
 # Installation process starts here
 if [[ ! -d "${TMPDIR}" ]]; then
     mkdir -p "${TMPDIR}"
 fi
 INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
 downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
+
+setHostName
 
 runInstaller
 
