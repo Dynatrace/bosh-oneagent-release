@@ -150,19 +150,26 @@ runInstaller() {
     done
 }
 
+# Taken from Dynatrace Linux setup script
+createDirIfNotExistAndSetRights() {
+  local dir="${1}"
+  local rights="${2}"
+  if [ ! -d "${dir}" ]; then
+    if ! mkdir -p "${dir}"; then
+      installLog "Cannot create ${dir} directory."
+    fi
+  fi
+
+  if ! chmod "${rights}" "${dir}"; then
+    installLog "Cannot change permisions of ${dir} directory to ${rights}."
+  fi
+}
+
 setHostName() {
     <% if not p('dynatrace.hostname').blank? %>
+        installLog "INFO hostname settings found, setting Host-Name to <%= p('dynatrace.hostname') %>"
+        createDirIfNotExistAndSetRights ${CONFIG_DIR} 755
         echo "<%= p('dynatrace.hostname') %>" > ${CONFIG_DIR}/hostname.conf
-
-        # Since the Installer-Script will already start the oneAgent process,
-        # we need to restart it, to apply the new settings.
-
-        if [[ -f "${ONEAGENT_INIT_FILE}" ]]; then
-            "${ONEAGENT_INIT_FILE}" restart
-        else
-            echo "ERROR: ${ONEAGENT_INIT_FILE} not found!"
-            exit 1
-        fi
     <% else %>
         #do nothing
         :
@@ -176,9 +183,9 @@ fi
 INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
 downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
 
-runInstaller
-
 setHostName
+
+runInstaller
 
 setWatchdogPid
 
