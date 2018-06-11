@@ -28,3 +28,6 @@ properties:
   dynatrace.applogaccess:
     description: 'Enable access to discovered application log files content'
     default: '1'
+  dynatrace.hostname:
+    description: 'Set the Hosts name reported by Dynatrace'
+    default: ''

@@ -153,6 +153,16 @@ runInstaller() {
 setHostName() {
     <% if not p('dynatrace.hostname').blank? %>
         echo "<%= p('dynatrace.hostname') %>" > ${CONFIG_DIR}/hostname.conf
+
+        # Since the Installer-Script will already start the oneAgent process,
+        # we need to restart it, to apply the new settings.
+
+        if [[ -f "${ONEAGENT_INIT_FILE}" ]]; then
+            "${ONEAGENT_INIT_FILE}" restart
+        else
+            echo "ERROR: ${ONEAGENT_INIT_FILE} not found!"
+            exit 1
+        fi
     <% else %>
         #do nothing
         :
@@ -169,16 +179,6 @@ downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
 runInstaller
 
 setHostName
-
-# Since the Installer-Script will already start the oneAgent process,
-# we need to restart it, to apply the new settings.
-
-if [[ -f "${ONEAGENT_INIT_FILE}" ]]; then
-    "${ONEAGENT_INIT_FILE}" restart
-else
-    echo "ERROR: ${ONEAGENT_INIT_FILE} not found!"
-    exit 1
-fi
 
 setWatchdogPid
 

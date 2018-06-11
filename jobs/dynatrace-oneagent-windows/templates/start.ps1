@@ -156,8 +156,19 @@ function setHostName()
 {
     if ($cfgHostName) {
         installLog "INFO" "hostname settings found, setting Host-Name to $cfgHostName"
-        echo $cfgHostName | new-item -force -path "$configPath/hostname.conf" -type file
-    }
+
+        try {
+            echo $cfgHostName | new-item -force -path "$configPath/hostname.conf" -type file
+
+            # Since the Installer-Script will already start the oneAgent service,
+            # we need to restart it, to apply the new settings.
+
+            restart-service "Dynatrace OneAgent" -ErrorAction Stop
+        } catch {
+            installLog "ERROR" "Setting Host-Name failed!"
+            Exit 1
+        }
+  }
 }
 
 # ==================================================
@@ -202,9 +213,6 @@ try {
 	Exit 1
 }
 
-#Set the Host-Name
-setHostName
-
 #run the installer
 try {
     $agentInstallerFile = $agentExpandPath + "/install.bat"
@@ -233,6 +241,9 @@ do {
 	$watchdogWaitCounter++
 } while ($output.length -eq 0)
 installLog "INFO" "Process $oneagentwatchdogProcessName has started"
+
+#Set the Host-Name
+setHostName
 
 #run this script infinitely and exit when drain-script was started
 installLog "INFO" "Waiting for drain.ps1 to stop start.ps1 script..."
