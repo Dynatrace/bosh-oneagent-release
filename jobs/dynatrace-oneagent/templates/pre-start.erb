@@ -8,7 +8,7 @@ export ENV_ID="<%= p("dynatrace.environmentid") %>"
 export API_TOKEN="<%= p("dynatrace.apitoken") %>"
 export API_URL="<%= p("dynatrace.apiurl") %>"
 export SSL_MODE="<%= p("dynatrace.sslmode") %>"
-export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
+#export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
@@ -33,9 +33,33 @@ if [[ "$PROXY" != "" ]]; then
     export http_proxy="$PROXY"
 fi
 
-if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
-    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
-fi
+#if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
+#    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
+#fi
+
+<% if ['0','1'].include? p('dynatrace.applogaccess').to_s %>
+    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=<%= p('dynatrace.applogaccess') %>"
+<% else %>
+    <% if p('dynatrace.applogaccess').blank? %>
+        #do nothing
+        :
+    <% else %>
+        installLog "Invalid Value for option 'applogaccess' expected 0/1, but got '<%= p('dynatrace.applogaccess') %>'"
+        exit 1
+     <% end %>
+<% end %>
+
+<% if ['0','1'].include? p('dynatrace.infraonly').to_s %>
+    ARGS="$ARGS INFRA_ONLY=<%= p('dynatrace.infraonly') %>"
+<% else %>
+    <% if p('dynatrace.infraonly').blank? %>
+        #do nothing
+        :
+    <% else %>
+        installLog "Invalid Value for option 'infraonly' expected 0/1, but got '<%= p('dynatrace.infraonly') %>'"
+        exit 1
+     <% end %>
+<% end %>
 
 # set downloadurl to fallback if not given
 if [[ "$DOWNLOADURL" == "" ]]; then

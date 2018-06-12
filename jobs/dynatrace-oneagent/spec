@@ -30,3 +30,6 @@ properties:
   dynatrace.applogaccess:
     description: 'Enable access to discovered application log files content'
     default: '1'
+  dynatrace.infraonly:
+    description: 'Enable Cloud-Infrastructure only monitoring (Disables Full-Stack monitoring)'
+    default: '0'
