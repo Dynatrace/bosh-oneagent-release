@@ -8,7 +8,7 @@ export ENV_ID="<%= p("dynatrace.environmentid") %>"
 export API_TOKEN="<%= p("dynatrace.apitoken") %>"
 export API_URL="<%= p("dynatrace.apiurl") %>"
 export SSL_MODE="<%= p("dynatrace.sslmode") %>"
-#export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
+export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
@@ -32,10 +32,6 @@ if [[ "$PROXY" != "" ]]; then
     export https_proxy="$PROXY"
     export http_proxy="$PROXY"
 fi
-
-#if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
-#    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
-#fi
 
 <% if ['0','1'].include? p('dynatrace.applogaccess').to_s %>
     ARGS="$ARGS APP_LOG_CONTENT_ACCESS=<%= p('dynatrace.applogaccess') %>"
