@@ -30,3 +30,6 @@ properties:
   dynatrace.applogaccess:
     description: 'Enable access to discovered application log files content'
     default: '1'
+  dynatrace.hostgroup
+    description: 'Provide a hostgroup name for your CF install to segrate core tech'
+    default: ''
