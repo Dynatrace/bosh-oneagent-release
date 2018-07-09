@@ -12,6 +12,7 @@ $cfgEnvironmentId = "<%= properties.dynatrace.environmentid %>"
 $cfgApiToken = "<%= properties.dynatrace.apitoken %>"
 $cfgApiUrl = "<%= properties.dynatrace.apiurl %>"
 $cfgSslMode = "<%= properties.dynatrace.sslmode %>"
+$cfgHostGroup = "<%= properties.dynatrace.hostgroup %>"
 
 $oneagentwatchdogProcessName = "oneagentwatchdog"
 $tempDir = "/var/vcap/data/dt_tmp"
@@ -194,11 +195,14 @@ try {
 
 #run the installer
 try {
-    $agentInstallerFile = $agentExpandPath + "/install.bat"
+    $commandArguments = "/quiet /qn"
+    if ($cfgHostGroup -ne "") {
+        installLog "INFO" "Setting host group to $cfgHostGroup"
+        $commandArguments += " HOST_GROUP=$cfgHostGroup"
+    }
 
-    # workaround missing /quiet option in install.bat
-    (Get-Content $agentInstallerFile).replace('/L*v', '/quiet /qn /L*v') | Set-Content $agentInstallerFile
-    $process = Start-Process -WorkingDirectory $agentExpandPath -FilePath "install.bat" -Wait -PassThru
+    # Arguments passed to install.bat will be appended to the agent installation command.
+    $process = Start-Process -WorkingDirectory $agentExpandPath -FilePath "install.bat" -ArgumentList $commandArguments -Wait -PassThru
     $process.WaitForExit()
 } catch {
     installLog "ERROR" "Failed to run OneAgent installer $agentExpandPath /install.bat"
