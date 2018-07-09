@@ -35,6 +35,7 @@ if [[ "$PROXY" != "" ]]; then
 fi
 
 if [[ "$HOST_GROUP" != "" ]]; then
+    installLog "Setting host group to ${HOST_GROUP}"
     ARGS="$ARGS HOST_GROUP=$HOST_GROUP"
 fi
 
