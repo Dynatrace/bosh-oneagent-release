@@ -37,11 +37,13 @@ setWatchdogPid() {
 }
 
 setHostTags() {
+    hostTagsFile="${CONFIG_DIR}/hostautotag.conf"
+
     echo "Setting host tags"
-    <% if p('dynatrace.host_tags').blank? %>
-    > $CONFIG_DIR/hostautotag.conf
+    <% if p('dynatrace.hosttags').blank? %>
+    > ${hostTagsFile}
     <% else %>
-    echo "<%= p('dynatrace.host_tags') %>" > ${CONFIG_DIR}/hostautotag.conf
+    echo "<%= p('dynatrace.hosttags') %>" > ${hostTagsFile}
     <% end %>
 }
 

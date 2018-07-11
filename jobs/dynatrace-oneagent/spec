@@ -13,10 +13,8 @@ packages: []
 properties:
   dynatrace.environmentid:
     description: 'Dynatrace environment ID'
-    default: ''
   dynatrace.apitoken:
     description: 'API token'
-    default: ''
   dynatrace.apiurl:
     description: 'URL to Dynatrace API endpoint'
     default: ''
@@ -35,7 +33,7 @@ properties:
   dynatrace.hostgroup:
     description: 'Provide a hostgroup name for your CF deployment'
     default: ''
-  dynatrace.host_tags:
+  dynatrace.hosttags:
     description: 'Host tags for this VM. Format like DT_TAGS ENV variable: single line, space separated pairs of <key>=<value>'
     default: ''
     example: landscape=production team=my_team

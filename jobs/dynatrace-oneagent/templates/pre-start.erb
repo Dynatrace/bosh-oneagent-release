@@ -28,7 +28,7 @@ fi
 
 ARGS=""
 if [[ "$PROXY" != "" ]]; then
-   installLog "Setting proxy to ${PROXY}"
+    installLog "Setting proxy to ${PROXY}"
     ARGS="$ARGS PROXY=$PROXY"
     export https_proxy="$PROXY"
     export http_proxy="$PROXY"
