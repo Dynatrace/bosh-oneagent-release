@@ -13,6 +13,7 @@ $cfgApiToken = "<%= properties.dynatrace.apitoken %>"
 $cfgApiUrl = "<%= properties.dynatrace.apiurl %>"
 $cfgSslMode = "<%= properties.dynatrace.sslmode %>"
 $cfgHostGroup = "<%= properties.dynatrace.hostgroup %>"
+$cfgInfraOnly = "<%= properties.dynatrace.infraonly %>"
 
 $oneagentwatchdogProcessName = "oneagentwatchdog"
 $tempDir = "/var/vcap/data/dt_tmp"
@@ -199,6 +200,11 @@ try {
     if ($cfgHostGroup -ne "") {
         installLog "INFO" "Setting host group to $cfgHostGroup"
         $commandArguments += " HOST_GROUP=$cfgHostGroup"
+    }
+
+    if ($cfgInfraOnly -ne "") {
+        installLog "INFO" "Enabling Infra-Only mode"
+        $commandArguments += " INFRA_ONLY=$cfgInfraOnly"
     }
 
     # Arguments passed to install.bat will be appended to the agent installation command.
