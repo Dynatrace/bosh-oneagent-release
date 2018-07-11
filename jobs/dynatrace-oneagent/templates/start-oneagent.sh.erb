@@ -1,6 +1,7 @@
 #!/bin/bash
 
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
+CONFIG_DIR="/var/lib/dynatrace/oneagent/agent/config"
 oneagentInitScript="/etc/init.d/oneagent"
 
 checkForInstaller() {
@@ -35,6 +36,15 @@ setWatchdogPid() {
     echo "${watchdogPID}" > "${RUN_DIR}/dynatrace-watchdog.pid"
 }
 
+setHostTags() {
+    echo "Setting host tags"
+    <% if p('dynatrace.host_tags').blank? %>
+    > $CONFIG_DIR/hostautotag.conf
+    <% else %>
+    echo "<%= p('dynatrace.host_tags') %>" > ${CONFIG_DIR}/hostautotag.conf
+    <% end %>
+}
+
 checkForInstaller
 
 if [[ -f "${oneagentInitScript}" ]]; then
@@ -45,3 +55,5 @@ else
 fi
 
 setWatchdogPid
+
+setHostTags
