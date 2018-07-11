@@ -33,3 +33,6 @@ properties:
   dynatrace.hostgroup:
     description: 'Provide a hostgroup name for your CF deployment'
     default: ''
+  dynatrace.infraonly:
+    description: 'Enable Cloud-Infrastructure only monitoring (Disables Full-Stack monitoring)'
+    default: '0'
