@@ -9,6 +9,7 @@ export API_TOKEN="<%= p("dynatrace.apitoken") %>"
 export API_URL="<%= p("dynatrace.apiurl") %>"
 export SSL_MODE="<%= p("dynatrace.sslmode") %>"
 export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
+export HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
@@ -27,10 +28,15 @@ fi
 
 ARGS=""
 if [[ "$PROXY" != "" ]]; then
-    installLog "Setting proxy to ${PROXY}"
+   installLog "Setting proxy to ${PROXY}"
     ARGS="$ARGS PROXY=$PROXY"
     export https_proxy="$PROXY"
     export http_proxy="$PROXY"
+fi
+
+if [[ "$HOST_GROUP" != "" ]]; then
+    installLog "Setting host group to ${HOST_GROUP}"
+    ARGS="$ARGS HOST_GROUP=$HOST_GROUP"
 fi
 
 if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
