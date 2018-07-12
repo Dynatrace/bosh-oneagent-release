@@ -178,7 +178,7 @@ describe 'dynatrace release' do
           expect(stdout).to_not match(/Error/)
           expect(status.exitstatus).to eq 0
           expect(FileTest.exist?('/var/vcap/sys/run/dynatrace-oneagent/dynatrace-watchdog.pid')).to be true
-          expect(File.read('/var/lib/dynatrace/oneagent/agent/config/hostautotag.conf')).to be ""
+          expect(File.read('/var/lib/dynatrace/oneagent/agent/config/hostautotag.conf')).to eq("")
         end
       end
 
