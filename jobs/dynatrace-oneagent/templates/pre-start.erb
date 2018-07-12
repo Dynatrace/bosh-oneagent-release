@@ -23,8 +23,8 @@ installLog() {
     echo "$1" | tee -a "${LOG_FILE}"
 }
 
-if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}"; then
-    installLog "ERROR: Creating directories ${RUN_DIR} and ${LOG_DIR} failed!"
+if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}" "${CONFIG_DIR}"; then
+    installLog "ERROR: Creating directories ${RUN_DIR}, ${LOG_DIR} and ${CONFIG_DIR} failed!"
     exit 1
 fi
 
@@ -83,11 +83,11 @@ setWatchdogPid() {
 }
 
 setHostTags() {
-    local hostTagsFile = "${CONFIG_DIR}/hostautotag.conf"
+    local hostTagsFile="${CONFIG_DIR}/hostautotag.conf"
 
     # We need to save the file content even if it's empty.
     installLog "INFO" "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
-    echo "${HOST_TAGS}" > "${hostTagsFile}"
+    echo -n "${HOST_TAGS}" > "${hostTagsFile}"
 }
 
 downloadAgent() {
@@ -168,6 +168,9 @@ runInstaller() {
 if [[ ! -d "${TMPDIR}" ]]; then
     mkdir -p "${TMPDIR}"
 fi
+
+setHostTags
+
 INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
 downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
 
