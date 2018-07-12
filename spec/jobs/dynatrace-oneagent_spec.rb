@@ -37,6 +37,7 @@ describe 'dynatrace release' do
           expect(script).to match('^export SSL_MODE=""$')
           expect(script).to match('^export APP_LOG_CONTENT_ACCESS="1"$')
           expect(script).to match('^export HOST_GROUP=""$')
+          expect(script).to match('^export INFRA_ONLY=""$')
         end
       end
 
