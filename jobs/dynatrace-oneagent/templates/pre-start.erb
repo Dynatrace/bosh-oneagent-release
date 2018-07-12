@@ -10,9 +10,11 @@ export API_URL="<%= p("dynatrace.apiurl") %>"
 export SSL_MODE="<%= p("dynatrace.sslmode") %>"
 export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
 export HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
+export HOST_TAGS="<%= p("dynatrace.hosttags") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
+CONFIG_DIR="/var/lib/dynatrace/oneagent/agent/config"
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
 LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
 LOG_FILE="$LOG_DIR/dynatrace-install.log"
@@ -78,6 +80,14 @@ setWatchdogPid() {
     echo "Setting ${AGENT_WATCHDOG} pid"
     watchdogPID=$(pgrep -f "${AGENT_WATCHDOG}")
     echo "${watchdogPID}" > "${RUN_DIR}/dynatrace-watchdog.pid"
+}
+
+setHostTags() {
+    local hostTagsFile = "${CONFIG_DIR}/hostautotag.conf"
+
+    # We need to save the file content even if it's empty.
+    installLog "INFO" "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
+    echo "${HOST_TAGS}" > "${hostTagsFile}"
 }
 
 downloadAgent() {
