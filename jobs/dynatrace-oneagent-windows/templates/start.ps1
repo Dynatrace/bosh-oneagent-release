@@ -13,6 +13,7 @@ $cfgApiToken = "<%= properties.dynatrace.apitoken %>"
 $cfgApiUrl = "<%= properties.dynatrace.apiurl %>"
 $cfgSslMode = "<%= properties.dynatrace.sslmode %>"
 $cfgHostGroup = "<%= properties.dynatrace.hostgroup %>"
+$cfgHostTags = "<%= properties.dynatrace.hosttags %>"
 
 $oneagentwatchdogProcessName = "oneagentwatchdog"
 $tempDir = "/var/vcap/data/dt_tmp"
@@ -151,6 +152,14 @@ function configureProxySettings() {
     }
 }
 
+function setHostTags() {
+    $hostTagsFile = "${CONFIG_DIR}/hostautotag.conf"
+
+    # We need to save the file content even if it's empty.
+    installLog "INFO" "Setting host tags to '$cfgHostTags' at $hostTagsFile"
+    Set-Content -Path $hostTagsFile -Value $cfgHostTags
+}
+
 # ==================================================
 # main section
 # ==================================================
@@ -164,6 +173,7 @@ If(!(Test-Path $agentExpandPath)) {
 }
 
 configureProxySettings
+setHostTags
 
 # download mode setup
 if ($cfgDownloadUrl.length -eq 0){
