@@ -37,6 +37,7 @@ describe 'dynatrace release' do
           expect(script).to match('^export SSL_MODE=""$')
           expect(script).to match('^export APP_LOG_CONTENT_ACCESS="1"$')
           expect(script).to match('^export HOST_GROUP=""$')
+          expect(script).to match('^export HOST_TAGS=""$')
         end
       end
 
@@ -177,6 +178,7 @@ describe 'dynatrace release' do
           expect(stdout).to_not match(/Error/)
           expect(status.exitstatus).to eq 0
           expect(FileTest.exist?('/var/vcap/sys/run/dynatrace-oneagent/dynatrace-watchdog.pid')).to be true
+          expect(File.read('/var/lib/dynatrace/oneagent/agent/config/hostautotag.conf')).to be ""
         end
       end
 
