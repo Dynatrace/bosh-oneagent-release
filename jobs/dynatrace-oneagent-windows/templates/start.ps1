@@ -21,6 +21,7 @@ $installerFile = "$tempDir/Dynatrace-OneAgent-Windows.zip"
 $agentExpandPath = "$tempDir/dynatrace-oneagent-windows"
 $logDir = "/var/vcap/sys/log/dynatrace-oneagent-windows"
 $logFile = "$logDir/dynatrace-install.log"
+$configDir = "$env:ProgramData\dynatrace\oneagent\agent\config"
 $dynatraceServiceName = "Dynatrace OneAgent"
 $exitHelperFile = "/var/vcap/jobs/dynatrace-oneagent-windows/exit"
 
@@ -153,7 +154,7 @@ function configureProxySettings() {
 }
 
 function setHostTags() {
-    $hostTagsFile = "${CONFIG_DIR}/hostautotag.conf"
+    $hostTagsFile = "${configDir}\hostautotag.conf"
 
     # We need to save the file content even if it's empty.
     installLog "INFO" "Setting host tags to '$cfgHostTags' at $hostTagsFile"
@@ -165,11 +166,17 @@ function setHostTags() {
 # ==================================================
 installLog "INFO", "Installing Dynatrace OneAgent..."
 CleanupAll
-If(!(Test-Path $tempDir)) {
+
+if (!(Test-Path $tempDir)) {
     New-Item -ItemType Directory -Path $tempDir
 }
-If(!(Test-Path $agentExpandPath)) {
+
+if (!(Test-Path $agentExpandPath)) {
     New-Item -ItemType Directory -Path $agentExpandPath
+}
+
+if (!(Test-Path $configDir)) {
+    New-Item -ItemType Directory -Path $configDir
 }
 
 configureProxySettings
