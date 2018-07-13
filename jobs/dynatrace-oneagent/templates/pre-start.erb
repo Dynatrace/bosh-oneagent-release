@@ -11,6 +11,7 @@ export SSL_MODE="<%= p("dynatrace.sslmode") %>"
 export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
 export HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
 export HOST_TAGS="<%= p("dynatrace.hosttags") %>"
+export INFRA_ONLY="<%= p("dynatrace.infraonly") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
@@ -36,13 +37,18 @@ if [[ "$PROXY" != "" ]]; then
     export http_proxy="$PROXY"
 fi
 
+if [[ "$APP_LOG_CONTENT_ACCESS" == "1" ]]; then
+    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
+fi
+
 if [[ "$HOST_GROUP" != "" ]]; then
     installLog "Setting host group to ${HOST_GROUP}"
     ARGS="$ARGS HOST_GROUP=$HOST_GROUP"
 fi
 
-if [[ "$APP_LOG_CONTENT_ACCESS" != "" ]]; then
-    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
+if [[ "$INFRA_ONLY" == "1" ]]; then
+    installLog "Enabling Infra-Only mode"
+    ARGS="$ARGS INFRA_ONLY=$INFRA_ONLY"
 fi
 
 # set downloadurl to fallback if not given
