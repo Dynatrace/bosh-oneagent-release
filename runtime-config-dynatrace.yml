@@ -43,6 +43,14 @@ addons:
       downloadurl: https://direct-download-url-for-agent
       # Specify the proxy to be used for communication.
       proxy: https://your-proxy-url
+      # Specify in which hostgroup the VMs in this deployments belong
+      hostgroup: example_hostgroup
+      # Define host tags for the VMs in this deployment
+      hosttags: landscape=production team=my_team
+      # Enable cloud infrastructure monitoring mode.
+      # Set this to 1 to activate it
+      infraonly: 0
+
 
 # optional: extra addon configuration for Windows cells
 - name: dynatrace-oneagent-windows-addon
