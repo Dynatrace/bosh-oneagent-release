@@ -1,9 +1,19 @@
+# Name of the service wrapping the start.ps1 script.
+$wrapperServiceName = "dynatrace-oneagent-windows"
+
 $drainLogFile = "/var/vcap/sys/log/dynatrace-oneagent-windows/drain.log"
 $dynatraceServiceName = "Dynatrace OneAgent"
 $registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains"
 $removeDomains = @()
 $removeDomains = "dynatrace.com", "dynatrace-managed.com"
 $cfgDownloadUrl = "<%= properties.dynatrace.downloadurl %>"
+
+$exitHelperFile = "/var/vcap/jobs/dynatrace-oneagent-windows/exit"
+
+function drainLog($level, $content) {
+    $line = "{0} {1} {2}" -f (Get-Date), $level, $content
+    Write-Output $line | Out-File -Encoding utf8 -Append $drainLogFile
+}
 
 If ($cfgDownloadUrl -ne "" -and $cfgDownloadUrl -match "^https:\/\/") {
     $splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
@@ -13,30 +23,47 @@ If ($cfgDownloadUrl -ne "" -and $cfgDownloadUrl -match "^https:\/\/") {
     }
 }
 
-Write-Output 'die' | Out-File -Encoding utf8 /var/vcap/jobs/dynatrace-oneagent-windows/exit
+# This signals start.ps1 to start uninstalling the agent, and to exit itself.
+# If start.ps1 finishes successfully, it will delete this file.
+Write-Output 'die' | Out-File -Encoding utf8 $exitHelperFile
 
 Start-Sleep -s 5
 
-#wait for start.ps1 to uninstall Dynatrace OneAgent
+drainLog "INFO" "Waiting until $wrapperServiceName service shuts down"
+
+$timer =  [system.diagnostics.stopwatch]::StartNew()
+
 do {
-	Start-Sleep -s 3
-	$output = Get-Service | Where-Object {$_.Name -match "$dynatraceServiceName"}
+    # Time-out after 5 minutes waiting.
+    if ($timer.Elapsed.TotalSeconds -gt (5 * 60)) {
+        drainLog "ERROR" "Time-out while waiting for $wrapperServiceName service shutdown."
+        Write-Host 1
+        exit 1
+    }
+
+    Start-Sleep -s 3
+    $output = Get-Service | Where-Object {$_.Name -match "$wrapperServiceName"}
 } while ($output.length -ne 0 -and $output.Status -eq 'Running')
 
-foreach($domain in $removeDomains) {
-    If(Test-Path "$registryPath\$domain") {
-        Remove-Item "$registryPath\$domain" -Recurse
-        Write-Output "Removed $domain from trusted sites" | Out-File -Encoding utf8 $drainLogFile
-    } 
-}
-Start-Sleep -s 15
+drainLog "INFO" "$dynatraceServiceName service has stopped"
 
-If ((Get-Service dynatrace-oneagent-windows -ErrorAction SilentlyContinue).Status -ne "Running") {
-    Write-Output 'success' | Out-File -Encoding utf8 $drainLogFile
-} Else {
-    Write-Output 'failed' | Out-File -Encoding utf8 $drainLogFile
-    Write-Host 1
+foreach ($domain in $removeDomains) {
+    if (Test-Path "$registryPath\$domain") {
+        Remove-Item "$registryPath\$domain" -Recurse
+        drainLog "INFO" "Removed $domain from trusted sites"
+    }
 }
+
+# start.ps1 should have deleted the exit helper file if everything went well.
+# If it's still there, then the script failed at some point.
+if (Test-Path $exitHelperFile) {
+    drainLog "WARN" "$exitHelperFile exists. start.ps1 likely failed."
+    drainLog "ERROR" "Failed"
+    Write-Host 1
+    exit 1
+}
+
+drainLog "INFO" "Success"
 
 Write-Host 0
-
+exit 0

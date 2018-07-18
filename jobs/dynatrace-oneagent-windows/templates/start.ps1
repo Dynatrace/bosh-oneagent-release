@@ -252,7 +252,7 @@ installLog "INFO" "Process $oneagentwatchdogProcessName has started"
 installLog "INFO" "Waiting for drain.ps1 to stop start.ps1 script..."
 
 If (Test-Path "$exitHelperFile") {
-	rm $exitHelperFile
+    Remove-Item $exitHelperFile
 }
 
 while (!(Test-Path "$exitHelperFile")) {
@@ -271,5 +271,8 @@ if ($app) {
 
 CleanupAll
 installLog "INFO" "Exiting ..."
+
+# Remove exit helper file. This will indicate to drain.ps1 that we have uninstalled the agent successfully.
+Remove-Item $exitHelperFile
 
 Exit 0
