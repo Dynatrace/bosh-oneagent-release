@@ -37,7 +37,6 @@ do {
     # Time-out after 5 minutes waiting.
     if ($timer.Elapsed.TotalSeconds -gt (5 * 60)) {
         drainLog "ERROR" "Time-out while waiting for $wrapperServiceName service shutdown."
-        Write-Host 1
         exit 1
     }
 
@@ -59,7 +58,6 @@ foreach ($domain in $removeDomains) {
 if (Test-Path $exitHelperFile) {
     drainLog "WARN" "$exitHelperFile exists. start.ps1 likely failed."
     drainLog "ERROR" "Failed"
-    Write-Host 1
     exit 1
 }
 
