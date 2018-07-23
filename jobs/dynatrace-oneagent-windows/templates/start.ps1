@@ -24,7 +24,7 @@ $logDir = "/var/vcap/sys/log/dynatrace-oneagent-windows"
 $logFile = "$logDir/dynatrace-install.log"
 $configDir = "$env:ProgramData\dynatrace\oneagent\agent\config"
 $dynatraceServiceName = "Dynatrace OneAgent"
-$exitHelperFile = "/var/vcap/jobs/dynatrace-oneagent-windows/exit"
+$exitHelperFile = "$tempDir/exit"
 
 # ==================================================
 # function section

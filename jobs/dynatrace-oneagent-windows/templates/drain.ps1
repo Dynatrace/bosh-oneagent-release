@@ -8,7 +8,8 @@ $removeDomains = @()
 $removeDomains = "dynatrace.com", "dynatrace-managed.com"
 $cfgDownloadUrl = "<%= properties.dynatrace.downloadurl %>"
 
-$exitHelperFile = "/var/vcap/jobs/dynatrace-oneagent-windows/exit"
+$tempDir = "/var/vcap/data/dt_tmp"
+$exitHelperFile = "$tempDir/exit"
 
 function drainLog($level, $content) {
     $line = "{0} {1} {2}" -f (Get-Date), $level, $content
