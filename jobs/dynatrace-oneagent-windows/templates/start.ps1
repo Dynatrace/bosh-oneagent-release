@@ -156,19 +156,21 @@ function configureProxySettings() {
 }
 
 function setHostTags() {
-	$hostTagsFile = "${configDir}\hostautotag.conf"
+	if ($cfgHostTags -ne "") {
+		$hostTagsFile = "${configDir}\hostautotag.conf"
 
-	# We need to save the file content even if it's empty.
-	installLog "INFO" "Setting host tags to '$cfgHostTags' at $hostTagsFile"
-	Set-Content -Path $hostTagsFile -Value $cfgHostTags
+		installLog "INFO" "Setting host tags to '$cfgHostTags' at $hostTagsFile"
+		Set-Content -Path $hostTagsFile -Value $cfgHostTags
+	}
 }
 
 function setHostProps() {
-	$hostPropsFile = "${configDir}\hostcustomproperties.conf"
+	if ($cfgHostProps -ne "") {
+		$hostPropsFile = "${configDir}\hostcustomproperties.conf"
 
-	# We need to save the file content even if it's empty.
-	installLog "INFO" "Setting host properties to '$cfgHostProps' at $hostPropsFile"
-	Set-Content -Path $hostPropsFile -Value $cfgHostProps
+		installLog "INFO" "Setting host properties to '$cfgHostProps' at $hostPropsFile"
+		Set-Content -Path $hostPropsFile -Value $cfgHostProps
+	}
 }
 
 # ==================================================

@@ -90,19 +90,21 @@ setWatchdogPid() {
 }
 
 setHostTags() {
-    local hostTagsFile="${CONFIG_DIR}/hostautotag.conf"
+    if [[ "${HOST_TAGS}" != "" ]]; then
+        local hostTagsFile="${CONFIG_DIR}/hostautotag.conf"
 
-    # We need to save the file content even if it's empty.
-    installLog "INFO" "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
-    echo -n "${HOST_TAGS}" > "${hostTagsFile}"
+        installLog "INFO" "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
+        echo -n "${HOST_TAGS}" > "${hostTagsFile}"
+    fi
 }
 
 setHostProps() {
-    local hostPropsFile="${CONFIG_DIR}/hostcustomproperties.conf"
+    if [[ "${HOST_PROPS}" != "" ]]; then
+        local hostPropsFile="${CONFIG_DIR}/hostcustomproperties.conf"
 
-    # We need to save the file content even if it's empty.
-    installLog "INFO" "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
-    echo -n "${HOST_PROPS}" > "${hostPropsFile}"
+        installLog "INFO" "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
+        echo -n "${HOST_PROPS}" > "${hostPropsFile}"
+    fi
 }
 
 downloadAgent() {
