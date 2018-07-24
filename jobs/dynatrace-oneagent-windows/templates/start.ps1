@@ -24,7 +24,7 @@ $logDir = "/var/vcap/sys/log/dynatrace-oneagent-windows"
 $logFile = "$logDir/dynatrace-install.log"
 $configDir = "$env:ProgramData\dynatrace\oneagent\agent\config"
 $dynatraceServiceName = "Dynatrace OneAgent"
-$exitHelperFile = "/var/vcap/jobs/dynatrace-oneagent-windows/exit"
+$exitHelperFile = "$tempDir/exit"
 
 # ==================================================
 # function section
@@ -68,9 +68,9 @@ function SetupSslAcceptAll {
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 function Unzip($filename, $destination)
 {
-    installLog "INFO" "Extracting $filename to $destination"
+	installLog "INFO" "Extracting $filename to $destination"
 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $destination)
+	[System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $destination)
 }
 
 function deleteItem($path) {
@@ -108,58 +108,58 @@ function CleanupAll() {
 }
 
 function downloadAgent($src, $dest) {
-    $downloadUrl = $src
-    $installerPath = $dest
-    $retryTimeout = 0
-    $downloadErrors = 0
+	$downloadUrl = $src
+	$installerPath = $dest
+	$retryTimeout = 0
+	$downloadErrors = 0
 
-    if ($cfgSslMode -eq "all") {
-        installLog "INFO" "Accepting all ssl certificates"
-        SetupSslAcceptAll
-    }
+	if ($cfgSslMode -eq "all") {
+		installLog "INFO" "Accepting all ssl certificates"
+		SetupSslAcceptAll
+	}
 
-    while($downloadErrors -lt 3) {
-        Start-Sleep -s $retryTimeout
+	while($downloadErrors -lt 3) {
+		Start-Sleep -s $retryTimeout
 
-        Try {
-            installLog "INFO" "Downloading Dynatrace agent from $downloadUrl to $installerPath"
-            Invoke-WebRequest $downloadUrl -Outfile $installerPath
-            Break
-        } Catch {
-            $downloadErrors = $downloadErrors + 1
-            $retryTimeout = $retryTimeout + 5
-            installLog "ERROR" "Dynatrace agent download failed, retrying in $retryTimeout seconds"
-        }
-    }
+		Try {
+			installLog "INFO" "Downloading Dynatrace agent from $downloadUrl to $installerPath"
+			Invoke-WebRequest $downloadUrl -Outfile $installerPath
+			Break
+		} Catch {
+			$downloadErrors = $downloadErrors + 1
+			$retryTimeout = $retryTimeout + 5
+			installLog "ERROR" "Dynatrace agent download failed, retrying in $retryTimeout seconds"
+		}
+	}
 
-    if ($downloadErrors -eq 3) {
-      installLog "error" "ERROR: Downloading agent installer failed!"
-      Exit 1
-    }
+	if ($downloadErrors -eq 3) {
+		installLog "error" "ERROR: Downloading agent installer failed!"
+		Exit 1
+	}
 }
 
 function configureProxySettings() {
-    if ($cfgProxy) {
-        installLog "INFO" "Proxy settings found, setting system proxy to $cfgProxy"
+	if ($cfgProxy) {
+		installLog "INFO" "Proxy settings found, setting system proxy to $cfgProxy"
 
-        try {
-            $reg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+		try {
+			$reg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
 
-            Set-ItemProperty -Path $reg -Name ProxyServer -Value $cfgProxy
-            Set-ItemProperty -Path $reg -Name ProxyEnable -Value 1
-        } catch {
-            installLog "ERROR" "Setting system proxy failed!"
-            Exit 1
-        }
-    }
+			Set-ItemProperty -Path $reg -Name ProxyServer -Value $cfgProxy
+			Set-ItemProperty -Path $reg -Name ProxyEnable -Value 1
+		} catch {
+			installLog "ERROR" "Setting system proxy failed!"
+			Exit 1
+		}
+	}
 }
 
 function setHostTags() {
-    $hostTagsFile = "${configDir}\hostautotag.conf"
+	$hostTagsFile = "${configDir}\hostautotag.conf"
 
-    # We need to save the file content even if it's empty.
-    installLog "INFO" "Setting host tags to '$cfgHostTags' at $hostTagsFile"
-    Set-Content -Path $hostTagsFile -Value $cfgHostTags
+	# We need to save the file content even if it's empty.
+	installLog "INFO" "Setting host tags to '$cfgHostTags' at $hostTagsFile"
+	Set-Content -Path $hostTagsFile -Value $cfgHostTags
 }
 
 # ==================================================
@@ -169,15 +169,15 @@ installLog "INFO", "Installing Dynatrace OneAgent..."
 CleanupAll
 
 if (!(Test-Path $tempDir)) {
-    New-Item -ItemType Directory -Path $tempDir
+	New-Item -ItemType Directory -Path $tempDir
 }
 
 if (!(Test-Path $agentExpandPath)) {
-    New-Item -ItemType Directory -Path $agentExpandPath
+	New-Item -ItemType Directory -Path $agentExpandPath
 }
 
 if (!(Test-Path $configDir)) {
-    New-Item -ItemType Directory -Path $configDir
+	New-Item -ItemType Directory -Path $configDir
 }
 
 configureProxySettings
@@ -213,23 +213,23 @@ try {
 
 #run the installer
 try {
-    $commandArguments = "/quiet /qn"
-    if ($cfgHostGroup -ne "") {
-        installLog "INFO" "Setting host group to $cfgHostGroup"
-        $commandArguments += " HOST_GROUP=$cfgHostGroup"
-    }
+	$commandArguments = "/quiet /qn"
+	if ($cfgHostGroup -ne "") {
+		installLog "INFO" "Setting host group to $cfgHostGroup"
+		$commandArguments += " HOST_GROUP=$cfgHostGroup"
+	}
 
-    if ($cfgInfraOnly -eq "1") {
-        installLog "INFO" "Enabling Infra-Only mode"
-        $commandArguments += " INFRA_ONLY=$cfgInfraOnly"
-    }
+	if ($cfgInfraOnly -eq "1") {
+		installLog "INFO" "Enabling Infra-Only mode"
+		$commandArguments += " INFRA_ONLY=$cfgInfraOnly"
+	}
 
-    # Arguments passed to install.bat will be appended to the agent installation command.
-    $process = Start-Process -WorkingDirectory $agentExpandPath -FilePath "install.bat" -ArgumentList $commandArguments -Wait -PassThru
-    $process.WaitForExit()
+	# Arguments passed to install.bat will be appended to the agent installation command.
+	$process = Start-Process -WorkingDirectory $agentExpandPath -FilePath "install.bat" -ArgumentList $commandArguments -Wait -PassThru
+	$process.WaitForExit()
 } catch {
-    installLog "ERROR" "Failed to run OneAgent installer $agentExpandPath /install.bat"
-    Exit 1
+	installLog "ERROR" "Failed to run OneAgent installer $agentExpandPath /install.bat"
+	Exit 1
 }
 installLog "INFO" "Installation done"
 
@@ -252,7 +252,7 @@ installLog "INFO" "Process $oneagentwatchdogProcessName has started"
 installLog "INFO" "Waiting for drain.ps1 to stop start.ps1 script..."
 
 If (Test-Path "$exitHelperFile") {
-	rm $exitHelperFile
+	Remove-Item $exitHelperFile
 }
 
 while (!(Test-Path "$exitHelperFile")) {
@@ -271,5 +271,8 @@ if ($app) {
 
 CleanupAll
 installLog "INFO" "Exiting ..."
+
+# Remove exit helper file. This will indicate to drain.ps1 that we have uninstalled the agent successfully.
+Remove-Item $exitHelperFile
 
 Exit 0
