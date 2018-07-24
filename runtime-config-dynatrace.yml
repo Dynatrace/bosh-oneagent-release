@@ -47,6 +47,8 @@ addons:
       hostgroup: example_hostgroup
       # Define host tags for the VMs in this deployment
       hosttags: landscape=production team=my_team
+      # Define custom properties for the VMs in this deployment
+      hostprops: Department=Acceptance Stage=Sprint
       # Enable cloud infrastructure monitoring mode.
       # Set this to 1 to activate it
       infraonly: 0
