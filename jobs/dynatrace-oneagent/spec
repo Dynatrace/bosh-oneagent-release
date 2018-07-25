@@ -37,6 +37,10 @@ properties:
     description: 'Host tags for this VM. Format like DT_TAGS ENV variable: single line, space separated pairs of <key>=<value>'
     default: ''
     example: landscape=production team=my_team
+  dynatrace.hostprops:
+    description: 'Host properties for this VM. Format like DT_CUSTOM_PROP ENV variable: single line, space separated pairs of <key>=<value>'
+    default: ''
+    example: Department=Acceptance Stage=Sprint
   dynatrace.infraonly:
     description: 'Enable Cloud-Infrastructure only monitoring (Disables Full-Stack monitoring)'
     default: '0'

@@ -11,6 +11,7 @@ export SSL_MODE="<%= p("dynatrace.sslmode") %>"
 export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
 export HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
 export HOST_TAGS="<%= p("dynatrace.hosttags") %>"
+export HOST_PROPS="<%= p("dynatrace.hostprops") %>"
 export INFRA_ONLY="<%= p("dynatrace.infraonly") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
@@ -89,11 +90,21 @@ setWatchdogPid() {
 }
 
 setHostTags() {
-    local hostTagsFile="${CONFIG_DIR}/hostautotag.conf"
+    if [[ "${HOST_TAGS}" != "" ]]; then
+        local hostTagsFile="${CONFIG_DIR}/hostautotag.conf"
 
-    # We need to save the file content even if it's empty.
-    installLog "INFO" "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
-    echo -n "${HOST_TAGS}" > "${hostTagsFile}"
+        installLog "INFO" "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
+        echo -n "${HOST_TAGS}" > "${hostTagsFile}"
+    fi
+}
+
+setHostProps() {
+    if [[ "${HOST_PROPS}" != "" ]]; then
+        local hostPropsFile="${CONFIG_DIR}/hostcustomproperties.conf"
+
+        installLog "INFO" "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
+        echo -n "${HOST_PROPS}" > "${hostPropsFile}"
+    fi
 }
 
 downloadAgent() {
@@ -176,6 +187,7 @@ if [[ ! -d "${TMPDIR}" ]]; then
 fi
 
 setHostTags
+setHostProps
 
 INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
 downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
