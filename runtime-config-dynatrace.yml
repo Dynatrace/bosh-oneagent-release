@@ -66,3 +66,4 @@ addons:
     dynatrace:
       environmentid: abc12345
       apitoken: bvQ0e--secret--2fEL9B
+      # All of the optional properties for the Linux addon shown above (for example, apiurl, hostgroup) can also be used here.
