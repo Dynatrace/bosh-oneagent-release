@@ -1,6 +1,6 @@
 releases:
 - name: dynatrace-oneagent
-  version: 1.0.2
+  version: 1.0.4
 
 addons:
 - name: dynatrace-oneagent-addon
