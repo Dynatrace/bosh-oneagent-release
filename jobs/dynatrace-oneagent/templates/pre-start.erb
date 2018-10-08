@@ -107,6 +107,32 @@ setHostProps() {
     fi
 }
 
+validateAgent(){
+    if [[ -e $1 ]]; then
+        rm -f dt-root.cert.pem
+        wget https://ca.dynatrace.com/dt-root.cert.pem
+
+        if [[ $? != 0 ]] || ! openssl -h &> /dev/null ; then
+            installLog "WARNING: could not validate integrity of the download"
+            return 2
+        fi
+
+        ( echo 'Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg="sha-256"; boundary="--SIGNED-INSTALLER"'; \
+          echo ; echo ; echo '----SIGNED-INSTALLER' ; cat $1 ) \
+        | openssl cms -verify -CAfile dt-root.cert.pem > /dev/null
+
+       if [[ $? != 0 ]]; then
+           installLog "ERROR: Validation failed! An error occurred while trying to download the Dynatrace agent"
+           return 1
+        else
+           return 0
+        fi
+    else
+        installLog "ERROR: Validation failed! An error occurred while trying to download the Dynatrace agent"
+        return 1
+    fi
+}
+
 downloadAgent() {
     local downloadUrl=$1
     local installerFile=$2
@@ -127,9 +153,10 @@ downloadAgent() {
 
         installLog "Downloading agent installer from ${downloadUrl}"
         $downloadCommand
-        if [[ $? != 0 ]]; then
+        validateAgent $2
+        if [[ $? == 1 ]]; then
             downloadErrors=$((downloadErrors+1))
-            retryTimeout=$($retryTimeout+5)
+            retryTimeout=$((retryTimeout+5))
 
             if [[ $downloadErrors -lt 3 ]]; then
                 installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
