@@ -14,7 +14,7 @@ addons:
     # for bosh versions upwards of v262.8.0 you can use:
     lifecycle: errand
     # for older bosh versions, you need to exclude errands/smoke-tests manually.
-    # Un comment the "jobs" block for that:
+    # Uncomment the "jobs" block for that and add additional jobs as needed:
     #jobs:
     #- {name: smoke-tests, release: cf}
     #- {name: push-apps-manager, release: push-apps-manager-release}
