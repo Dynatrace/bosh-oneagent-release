@@ -2,7 +2,7 @@
 
 INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
 
-. ./service.sh
+source ./service.sh
 
 if [[ ! -d "${INSTALL_DIR}" ]]; then
     echo "Dynatrace OneAgent already uninstalled"
