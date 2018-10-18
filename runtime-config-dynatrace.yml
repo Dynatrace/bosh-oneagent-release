@@ -11,21 +11,25 @@ addons:
     stemcell:
       - os: ubuntu-trusty
   exclude:
-    jobs:
-    - {name: smoke-tests, release: cf}
-    - {name: push-apps-manager, release: push-apps-manager-release}
-    - {name: deploy-notifications, release: notifications}
-    - {name: deploy-notifications-ui, release: notifications-ui}
-    - {name: push-pivotal-account, release: pivotal-account}
-    - {name: deploy-autoscaling, release: cf-autoscaling}
-    - {name: register-broker, release: cf-autoscaling}
-    - {name: nfsbrokerpush, release: nfs-volume}
-    - {name: bootstrap, release: cf-mysql}
-    - {name: rejoin-unsafe, release: cf-mysql}
-    - {name: broker-registrar, release: cf-mysql}
-    - {name: deregister-and-purge-instances, release: cf-mysql}
-    - {name: smoke-tests, release: cf-mysql}
-    - {name: install-hwc-buildpack, release: hwc-buildpack}
+    # for bosh versions upwards of v262.8.0 you can use:
+    lifecycle: errand
+    # for older bosh versions, you need to exclude errands/smoke-tests manually.
+    # Un comment the "jobs" block for that:
+    #jobs:
+    #- {name: smoke-tests, release: cf}
+    #- {name: push-apps-manager, release: push-apps-manager-release}
+    #- {name: deploy-notifications, release: notifications}
+    #- {name: deploy-notifications-ui, release: notifications-ui}
+    #- {name: push-pivotal-account, release: pivotal-account}
+    #- {name: deploy-autoscaling, release: cf-autoscaling}
+    #- {name: register-broker, release: cf-autoscaling}
+    #- {name: nfsbrokerpush, release: nfs-volume}
+    #- {name: bootstrap, release: cf-mysql}
+    #- {name: rejoin-unsafe, release: cf-mysql}
+    #- {name: broker-registrar, release: cf-mysql}
+    #- {name: deregister-and-purge-instances, release: cf-mysql}
+    #- {name: smoke-tests, release: cf-mysql}
+    #- {name: install-hwc-buildpack, release: hwc-buildpack}
   properties:
     dynatrace:
       environmentid: <environmentId>
@@ -62,6 +66,8 @@ addons:
   include:
     stemcell:
       - os: windows2012R2
+  exclude:
+    lifecycle: errand
   properties:
     dynatrace:
       environmentid: abc12345
