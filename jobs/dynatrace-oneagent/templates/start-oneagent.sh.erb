@@ -1,7 +1,8 @@
 #!/bin/bash
 
+source ./service.sh
+
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
-oneagentInitScript="/etc/init.d/oneagent"
 
 checkForInstaller() {
     local installerRetries=10
@@ -37,10 +38,7 @@ setWatchdogPid() {
 
 checkForInstaller
 
-if [[ -f "${oneagentInitScript}" ]]; then
-    "${oneagentInitScript}" start
-else
-    echo "ERROR: ${oneagentInitScript} not found!"
+if ! runServiceCommand start; then
     exit 1
 fi
 

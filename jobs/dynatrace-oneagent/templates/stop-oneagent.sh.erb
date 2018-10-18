@@ -1,14 +1,13 @@
 #!/bin/bash
 
-oneagentInitScript="/etc/init.d/oneagent"
 INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
 
-if [[ -f "${oneagentInitScript}" ]]; then
-    "${oneagentInitScript}" stop
-elif [[ ! -d "${INSTALL_DIR}" ]]; then
+source ./service.sh
+
+if [[ ! -d "${INSTALL_DIR}" ]]; then
     echo "Dynatrace OneAgent already uninstalled"
     exit 0
 else
-    echo "ERROR: ${oneagentInitScript} not found!"
-    exit 1
+    runServiceCommand stop
+    exit # Returns exit code from the function call.
 fi
