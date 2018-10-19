@@ -163,6 +163,10 @@ runInstaller() {
         local installerFound=$?
         if [[ $installerFound -eq 1 ]]; then
             sh "${INSTALLER_FILE}" ${ARGS} INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
+            if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+                installLog "ERROR: Installation failed"
+                exit 1
+            fi
             break
         elif [[ $installerFound -eq 1 ]] && [[ $installerRetries -lt 10 ]]; then
             # since there already ran an installer a moment ago,
