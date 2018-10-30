@@ -8,6 +8,8 @@ addons:
   - name: dynatrace-oneagent
     release: dynatrace-oneagent
   include:
+    deployments:
+      - name-of-your-deployment
     stemcell:
       - os: ubuntu-trusty
   exclude:
@@ -64,6 +66,8 @@ addons:
   - name: dynatrace-oneagent-windows
     release: dynatrace-oneagent
   include:
+    deployments:
+      - name-of-your-deployment
     stemcell:
       - os: windows2012R2
   exclude:
