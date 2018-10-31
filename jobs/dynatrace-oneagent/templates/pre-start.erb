@@ -74,7 +74,7 @@ if [[ "$SSL_MODE" == "all" ]]; then
 fi
 
 INSTALL_BASE_DIR="/var/vcap/data"
-if [[ -d ${INSTALL_BASE_DIR} ]] && [[ $(df --output=avail -m ${INSTALL_BASE_DIR} | awk '{if (NR==2) {print $1}}') -gt 2048 ]]; then
+if [[ -d ${INSTALL_BASE_DIR} ]] && [[ $(df --output=avail -m ${INSTALL_BASE_DIR} | awk '{if (NR==2) {print $1}}') -gt 1536 ]]; then
     INSTALL_DIR="${INSTALL_BASE_DIR}/dynatrace/oneagent"
 else
     installLog "Not enough disk space available on ${INSTALL_BASE_DIR}!"
