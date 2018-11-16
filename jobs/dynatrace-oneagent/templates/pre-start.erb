@@ -129,7 +129,7 @@ downloadAgent() {
         $downloadCommand 2>&1 | tee -a "${LOG_FILE}"
         if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             downloadErrors=$((downloadErrors+1))
-            retryTimeout=$($retryTimeout+5)
+            retryTimeout=$((retryTimeout+5))
 
             if [[ $downloadErrors -lt 3 ]]; then
                 installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
