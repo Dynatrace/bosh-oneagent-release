@@ -93,7 +93,7 @@ setHostTags() {
     if [[ "${HOST_TAGS}" != "" ]]; then
         local hostTagsFile="${CONFIG_DIR}/hostautotag.conf"
 
-        installLog "INFO" "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
+        installLog "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
         echo -n "${HOST_TAGS}" > "${hostTagsFile}"
     fi
 }
@@ -102,7 +102,7 @@ setHostProps() {
     if [[ "${HOST_PROPS}" != "" ]]; then
         local hostPropsFile="${CONFIG_DIR}/hostcustomproperties.conf"
 
-        installLog "INFO" "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
+        installLog "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
         echo -n "${HOST_PROPS}" > "${hostPropsFile}"
     fi
 }
