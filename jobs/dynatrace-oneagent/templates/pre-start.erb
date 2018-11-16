@@ -112,9 +112,9 @@ downloadAgent() {
     local installerFile=$2
 
     if curl -h &> /dev/null ; then
-        local downloadCommand="curl -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile}"
+        local downloadCommand="curl -s -S -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile}"
     elif wget -h &> /dev/null ; then
-        local downloadCommand="wget --connect-timeout=10 $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile}"
+        local downloadCommand="wget --connect-timeout=10 -nv $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile}"
     else
         installLog "ERROR: Neither curl nor wget executable found!"
         exit 1
@@ -126,8 +126,8 @@ downloadAgent() {
         sleep $retryTimeout
 
         installLog "Downloading agent installer from ${downloadUrl}"
-        $downloadCommand
-        if [[ $? != 0 ]]; then
+        $downloadCommand 2>&1 | tee -a "${LOG_FILE}"
+        if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             downloadErrors=$((downloadErrors+1))
             retryTimeout=$($retryTimeout+5)
 
@@ -135,6 +135,7 @@ downloadAgent() {
                 installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
             fi
         else
+            installLog "Download was successful"
             break
         fi
     done
