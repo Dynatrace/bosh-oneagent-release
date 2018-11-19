@@ -94,12 +94,12 @@ function removeInstallerArchive() {
 
 function removeExpandedInstaller() {
 	try {
-		installLog "INFO", "Cleaning $agentExpandPath"
+		installLog "INFO" "Cleaning $agentExpandPath"
 		if (Test-Path -Path $agentExpandPath) {
 			deleteItem $agentExpandPath
 		}
 	} catch {
-		installLog "ERROR", "Unable to remove directory: $agentExpandPath"
+		installLog "ERROR" "Unable to remove directory: $agentExpandPath"
 	}
 }
 
@@ -136,7 +136,7 @@ function downloadAgent($src, $dest) {
 	}
 
 	if ($downloadErrors -eq 3) {
-		installLog "error" "ERROR: Downloading agent installer failed!"
+		installLog "ERROR" "Downloading agent installer failed!"
 		Exit 1
 	}
 }
@@ -178,7 +178,7 @@ function setHostProps() {
 # ==================================================
 # main section
 # ==================================================
-installLog "INFO", "Installing Dynatrace OneAgent..."
+installLog "INFO" "Installing Dynatrace OneAgent..."
 CleanupAll
 
 if (!(Test-Path $tempDir)) {
@@ -218,7 +218,7 @@ installLog "INFO" "Using API URL $cfgApiUrl"
 downloadAgent $cfgDownloadUrl $installerFile
 
 try {
-	installLog "INFO", "Expanding $installerFile to $agentExpandPath..."
+	installLog "INFO" "Expanding $installerFile to $agentExpandPath..."
 	Unzip "$installerFile" "$agentExpandPath"
 } catch {
 	installLog "ERROR" "Failed to extract $installerFile to $agentExpandPath"
