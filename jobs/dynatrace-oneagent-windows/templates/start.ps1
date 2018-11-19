@@ -127,6 +127,8 @@ function downloadAgent($src, $dest) {
 			Invoke-WebRequest $downloadUrl -Outfile $installerPath
 			Break
 		} Catch {
+			installLog "ERROR" "Failed to download: $($_.Exception.Message)"
+
 			$downloadErrors = $downloadErrors + 1
 			$retryTimeout = $retryTimeout + 5
 			installLog "ERROR" "Dynatrace agent download failed, retrying in $retryTimeout seconds"
