@@ -176,7 +176,10 @@ function setHostProps() {
 # ==================================================
 # main section
 # ==================================================
-installLog "INFO", "Installing Dynatrace OneAgent..."
+
+installLog "INFO" "Dynatrace BOSH Add-on version <%= spec.release.version %>"
+
+installLog "INFO" "Installing Dynatrace OneAgent..."
 CleanupAll
 
 if (!(Test-Path $tempDir)) {

@@ -16,6 +16,8 @@ function drainLog($level, $content) {
 	Write-Output $line | Out-File -Encoding utf8 -Append $drainLogFile
 }
 
+drainLog "INFO" "Dynatrace BOSH Add-on version <%= spec.release.version %>"
+
 If ($cfgDownloadUrl -ne "" -and $cfgDownloadUrl -match "^https:\/\/") {
 	$splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
 	$customDownloadUrl = $cfgDownloadUrl.Split("//", $splitOptions)[1].Split("/", $splitOptions)[0]
