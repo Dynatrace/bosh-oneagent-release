@@ -94,12 +94,12 @@ function removeInstallerArchive() {
 
 function removeExpandedInstaller() {
 	try {
-		installLog "INFO", "Cleaning $agentExpandPath"
+		installLog "INFO" "Cleaning $agentExpandPath"
 		if (Test-Path -Path $agentExpandPath) {
 			deleteItem $agentExpandPath
 		}
 	} catch {
-		installLog "ERROR", "Unable to remove directory: $agentExpandPath"
+		installLog "ERROR" "Unable to remove directory: $agentExpandPath"
 	}
 }
 
@@ -127,6 +127,8 @@ function downloadAgent($src, $dest) {
 			Invoke-WebRequest $downloadUrl -Outfile $installerPath
 			Break
 		} Catch {
+			installLog "ERROR" "Failed to download: $($_.Exception.Message)"
+
 			$downloadErrors = $downloadErrors + 1
 			$retryTimeout = $retryTimeout + 5
 			installLog "ERROR" "Dynatrace agent download failed, retrying in $retryTimeout seconds"
@@ -134,7 +136,7 @@ function downloadAgent($src, $dest) {
 	}
 
 	if ($downloadErrors -eq 3) {
-		installLog "error" "ERROR: Downloading agent installer failed!"
+		installLog "ERROR" "Downloading agent installer failed!"
 		Exit 1
 	}
 }
@@ -219,7 +221,7 @@ installLog "INFO" "Using API URL $cfgApiUrl"
 downloadAgent $cfgDownloadUrl $installerFile
 
 try {
-	installLog "INFO", "Expanding $installerFile to $agentExpandPath..."
+	installLog "INFO" "Expanding $installerFile to $agentExpandPath..."
 	Unzip "$installerFile" "$agentExpandPath"
 } catch {
 	installLog "ERROR" "Failed to extract $installerFile to $agentExpandPath"
