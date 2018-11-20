@@ -244,8 +244,11 @@ try {
 	# Arguments passed to install.bat will be appended to the agent installation command.
 	$process = Start-Process -WorkingDirectory $agentExpandPath -FilePath "install.bat" -ArgumentList $commandArguments -Wait -PassThru
 	$process.WaitForExit()
+	if ($process.ExitCode -ne 0) {
+		throw "Installation process exited with code $($process.ExitCode)"
+	}
 } catch {
-	installLog "ERROR" "Failed to run OneAgent installer $agentExpandPath /install.bat"
+	installLog "ERROR" "Failed to run OneAgent installer $agentExpandPath/install.bat: $($_.Exception.Message)"
 	Exit 1
 }
 installLog "INFO" "Installation done"
