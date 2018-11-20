@@ -26,6 +26,8 @@ All releases since 0.3.6 upwards are packaged via bosh2. This means you can't up
 Since v2.0 of the Cloud Foundry Ops Manager, bosh2 is the default and is simply called with 'bosh'. If you use a version prior to that, bosh2 should be available besides the default bosh1. You can call it with the 'bosh2' command.
 Replace the commands above respectively
 
+Releases since v1.0.5 also require BOSH Director v263 or greater.
+
 ## License
 
 Licensed under the MIT License. See the [LICENSE](https://github.com/dynatrace-innovationlab/bosh-oneagent-release/blob/master/LICENSE) file for details.

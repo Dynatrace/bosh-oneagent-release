@@ -8,6 +8,8 @@ installLog() {
     echo "$1" >> "${DRAIN_LOG}"
 }
 
+installLog "Dynatrace BOSH Add-on version <%= spec.release.version %>"
+
 installLog "Uninstalling the OneAgent..."
 
 agentDir="${INSTALL_DIR}"

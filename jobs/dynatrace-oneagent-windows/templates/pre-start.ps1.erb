@@ -7,6 +7,8 @@ $cfgDownloadUrl = "<%= properties.dynatrace.downloadurl %>"
 $addDomains = @()
 $addDomains = "dynatrace.com", "dynatrace-managed.com"
 
+Write-Output "Dynatrace BOSH Add-on version <%= spec.release.version %>"
+
 If ($cfgDownloadUrl -ne "") {
 	$splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
 	$customDownloadUrl = $cfgDownloadUrl.Split("//", $splitOptions)[1].Split("/", $splitOptions)[0]
