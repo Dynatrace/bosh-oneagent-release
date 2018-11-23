@@ -41,13 +41,13 @@ if [[ -d "${dynatraceLibDir}" ]]; then
     rm -rf "${dynatraceLibDir}"
 fi
 
-if [[ -d "${dynatraceLogDir}" ]]; then
-    rm -rf "${dynatraceLogDir}"
-fi
-
 if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
     installLog "Removing broken symlink ${leftoverSymlink}"
     rm "${leftoverSymlink}"
+fi
+
+if [[ -d "${dynatraceLogDir}" ]]; then
+    rm -rf "${dynatraceLogDir}"
 fi
 
 echo "0"
