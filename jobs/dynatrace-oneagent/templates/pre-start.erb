@@ -25,12 +25,12 @@ installLog() {
     echo "$1" | tee -a "${LOG_FILE}"
 }
 
+installLog "Dynatrace BOSH Add-on version <%= spec.release.version %>"
+
 if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}" "${CONFIG_DIR}"; then
     installLog "ERROR: Creating directories ${RUN_DIR}, ${LOG_DIR} and ${CONFIG_DIR} failed!"
     exit 1
 fi
-
-installLog "Dynatrace BOSH Add-on version <%= spec.release.version %>"
 
 ARGS=""
 if [[ "$PROXY" != "" ]]; then
