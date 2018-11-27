@@ -20,7 +20,17 @@ bundle
 ```
 
 ## Run tests
+* Set needed environment variables:
+```bash
+export DT_TENANT=sometenantid
+export DT_API_TOKEN=someapitoken
+```
+* (optional) If not running against a live.dynatrace.com tenant, set API URL as well:
+```bash
+export DT_API_URL=http://your.api.url
+```
 
+* Actually run the tests:
 ```bash
 cd $repodir
 sudo -s
