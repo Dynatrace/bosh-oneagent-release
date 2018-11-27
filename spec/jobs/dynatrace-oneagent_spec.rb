@@ -10,6 +10,8 @@ describe 'dynatrace release' do
   let(:release) { Bosh::Template::Test::ReleaseDir.new(File.join(File.dirname(__FILE__), '../..')) }
   let(:stubbed_env) { Rspec::Bash::StubbedEnv.new(Rspec::Bash::StubbedEnv::BASH_STUB) }
 
+  let(:release_version) { Bosh::Template::Test::InstanceSpec.new().to_h().merge( {'release' => { 'version' => '123' }}) }
+
   describe 'dynatrace-oneagent job' do
     let(:job) { release.job('dynatrace-oneagent') }
 
@@ -27,7 +29,7 @@ describe 'dynatrace release' do
         end
 
         it 'render' do
-          script = template.render(manifest)
+          script = template.render(manifest, spec: release_version)
 
           expect(script).to match('^export DOWNLOADURL=""$')
           expect(script).to match('^export PROXY=""$')
@@ -39,7 +41,7 @@ describe 'dynatrace release' do
           expect(script).to match('^export HOST_GROUP=""$')
           expect(script).to match('^export HOST_TAGS=""$')
           expect(script).to match('^export HOST_PROPS=""$')
-          expect(script).to match('^export INFRA_ONLY=""$')
+          expect(script).to match('^export INFRA_ONLY="0"$')
         end
       end
 
@@ -54,7 +56,7 @@ describe 'dynatrace release' do
             }
           end
           it 'test' do
-            script = template.render(manifest)
+            script = template.render(manifest, spec: release_version)
             stdout, stderr, status = stubbed_env.execute_inline(script)
             expect(stdout).to match("Not enough disk space available on /var/vcap/data!")
             expect(status.exitstatus).to eq 1
@@ -79,7 +81,7 @@ describe 'dynatrace release' do
             }
           end
           it 'exec' do
-            script = template.render(manifest)
+            script = template.render(manifest, spec: release_version)
             stdout, stderr, status = stubbed_env.execute_inline(script)
             expect(stdout).to match(/Downloading agent installer from downloadurl/)
             expect(stdout).to match(/Dynatrace agent download failed, retrying in /)
@@ -98,7 +100,7 @@ describe 'dynatrace release' do
             }
           end
           it 'exec' do
-            script = template.render(manifest)
+            script = template.render(manifest, spec: release_version)
             stdout, stderr, status = stubbed_env.execute_inline(script)
             expect(stdout).to include("Downloading agent installer from apiurl/v1/deployment/installer/agent/unix/default/latest?Api-Token=na")
             expect(stdout).to match(/ERROR: Downloading agent installer failed!/)
@@ -118,7 +120,7 @@ describe 'dynatrace release' do
             }
           end
           it 'exec' do
-            script = template.render(manifest)
+            script = template.render(manifest, spec: release_version)
             stdout, stderr, status = stubbed_env.execute_inline(script)
             expect(status.exitstatus).to eq 1
             expect(stdout).to match(/Please set environment ID and API token for Dynatrace OneAgent./)
@@ -134,7 +136,7 @@ describe 'dynatrace release' do
             }
           end
           it 'exec' do
-            script = template.render(manifest)
+            script = template.render(manifest, spec: release_version)
             stdout, stderr, status = stubbed_env.execute_inline(script)
             expect(status.exitstatus).to eq 1
             expect(stdout).to match(/Please set environment ID and API token for Dynatrace OneAgent./)
@@ -150,7 +152,7 @@ describe 'dynatrace release' do
             }
           end
           it 'exec' do
-            script = template.render(manifest)
+            script = template.render(manifest, spec: release_version)
             stdout, stderr, status = stubbed_env.execute_inline(script)
             expect(status.exitstatus).to eq 1
             expect(stdout).to match(/Please set environment ID and API token for Dynatrace OneAgent./)
@@ -174,7 +176,7 @@ describe 'dynatrace release' do
           expect(ENV).to have_key("DT_API_URL")
         end
         it 'exec', :install => true do
-          script = template.render(manifest)
+          script = template.render(manifest, spec: release_version)
           stdout, stderr, status = stubbed_env.execute_inline(script)
           expect(stdout).to match(/Installation finished/)
           expect(stdout).to_not match(/Error/)
@@ -187,9 +189,11 @@ describe 'dynatrace release' do
 
     describe 'stop-oneagent.sh', :monit => true do
       let(:template) { job.template('bin/stop-oneagent.sh') }
+      let(:service_template) { job.template('bin/service.sh') }
       let(:manifest) {}
       it 'exec' do
         script = template.render(manifest)
+        File.write("/tmp/service.sh", service_template.render(manifest))
         stdout, stderr, status = stubbed_env.execute_inline(script)
         expect(status.exitstatus).to eq 0
       end
@@ -198,9 +202,11 @@ describe 'dynatrace release' do
 
     describe 'start-oneagent.sh', :monit => true do
       let(:template) { job.template('bin/start-oneagent.sh') }
+      let(:service_template) { job.template('bin/service.sh') }
       let(:manifest) {}
       it 'exec' do
-        script = template.render(manifest)
+        script = template.render(manifest, spec: release_version)
+        File.write("/tmp/service.sh", service_template.render(manifest))
         stdout, stderr, status = stubbed_env.execute_inline(script)
         expect(status.exitstatus).to eq 0
       end
@@ -212,7 +218,7 @@ describe 'dynatrace release' do
       describe 'exec', :uninstall => true do
         let(:manifest) {}
         it 'exec' do
-          script = template.render(manifest)
+          script = template.render(manifest, spec: release_version)
           stdout, stderr, status = stubbed_env.execute_inline(script)
           expect(status.exitstatus).to eq 0
           expect(stdout).to eq("0\n")
