@@ -14,7 +14,7 @@ $cfgApiUrl = "<%= properties.dynatrace.apiurl %>"
 $cfgSslMode = "<%= properties.dynatrace.sslmode %>"
 $cfgHostGroup = "<%= properties.dynatrace.hostgroup %>"
 $cfgHostTags = "<%= properties.dynatrace.hosttags %>"
-$cfgHostProps = "<%= properties.dynatrace.hostprops %>"
+$cfgHostProps = "<%= properties.dynatrace.hostprops %> BOSH_RELEASE_VERSION=<%= spec.release.version %>"
 $cfgInfraOnly = "<%= properties.dynatrace.infraonly %>"
 
 $oneagentwatchdogProcessName = "oneagentwatchdog"
@@ -167,12 +167,10 @@ function setHostTags() {
 }
 
 function setHostProps() {
-	if ($cfgHostProps -ne "") {
-		$hostPropsFile = "${configDir}\hostcustomproperties.conf"
+	$hostPropsFile = "${configDir}\hostcustomproperties.conf"
 
-		installLog "INFO" "Setting host properties to '$cfgHostProps' at $hostPropsFile"
-		Set-Content -Path $hostPropsFile -Value $cfgHostProps
-	}
+	installLog "INFO" "Setting host properties to '$cfgHostProps' at $hostPropsFile"
+	Set-Content -Path $hostPropsFile -Value $cfgHostProps
 }
 
 # ==================================================

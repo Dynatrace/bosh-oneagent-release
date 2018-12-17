@@ -11,7 +11,7 @@ export SSL_MODE="<%= p("dynatrace.sslmode") %>"
 export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
 export HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
 export HOST_TAGS="<%= p("dynatrace.hosttags") %>"
-export HOST_PROPS="<%= p("dynatrace.hostprops") %>"
+export HOST_PROPS="<%= p("dynatrace.hostprops") %> BOSH_RELEASE_VERSION=<%= spec.release.version %>"
 export INFRA_ONLY="<%= p("dynatrace.infraonly") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
@@ -101,12 +101,10 @@ setHostTags() {
 }
 
 setHostProps() {
-    if [[ "${HOST_PROPS}" != "" ]]; then
-        local hostPropsFile="${CONFIG_DIR}/hostcustomproperties.conf"
+    local hostPropsFile="${CONFIG_DIR}/hostcustomproperties.conf"
 
-        installLog "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
-        echo -n "${HOST_PROPS}" > "${hostPropsFile}"
-    fi
+    installLog "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
+    echo -n "${HOST_PROPS}" > "${hostPropsFile}"
 }
 
 downloadAgent() {
