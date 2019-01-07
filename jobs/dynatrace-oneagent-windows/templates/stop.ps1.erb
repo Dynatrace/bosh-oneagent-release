@@ -1,0 +1,28 @@
+# Stops both the Dynatrace Service and the Job Wrapper Service (start.ps1).
+
+$exitHelperFile = "/var/vcap/data/dt_tmp/exit"
+
+$dynatraceServiceName = "Dynatrace OneAgent"
+
+# ==================================================
+# Main section
+# ==================================================
+
+# Sentinel file to stop the wrapper service (start.ps1).
+Write-Output 'die' | Out-File -Encoding utf8 $exitHelperFile
+
+# If the service doesn't exist or is not running, this is a noop.
+Get-Service `
+	| Where-Object {($_.Name -eq $dynatraceServiceName) -and ($_.Status -eq 'Running')} `
+	| Stop-Service
+
+# Wait until the service has stopped.
+do {
+	Start-Sleep -s 5
+	$output = Get-Service | Where-Object {$_.Name -eq $dynatraceServiceName}
+} while (($output.Length -ne 0) -or ($output.Status -eq 'Running'))
+
+# Wait until the sentinel has been removed.
+while (Test-Path $exitHelperFile) {
+	Start-Sleep -s 5
+}

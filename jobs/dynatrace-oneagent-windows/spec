@@ -4,8 +4,9 @@ description: "This is a job that will run Dynatrace OneAgent installer for Windo
 
 templates:
   pre-start.ps1.erb: bin/pre-start.ps1
-  start.ps1: bin/start.ps1
-  drain.ps1: bin/drain.ps1
+  start.ps1.erb: bin/start.ps1
+  stop.ps1.erb: bin/stop.ps1
+  drain.ps1.erb: bin/drain.ps1
 
 packages: []
 

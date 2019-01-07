@@ -3,7 +3,11 @@
     {
       "name": "dynatrace-oneagent-windows",
       "executable": "powershell",
-      "args": [ "/var/vcap/jobs/dynatrace-oneagent-windows/bin/start.ps1" ]
+      "args": [ "/var/vcap/jobs/dynatrace-oneagent-windows/bin/start.ps1" ],
+      "stop": {
+        "executable": "powershell.exe",
+        "args": [ "/var/vcap/jobs/dynatrace-oneagent-windows/bin/stop.ps1" ]
+      }
     }
   ]
 }

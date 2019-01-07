@@ -1,0 +1,77 @@
+# Uninstalls the Dyntrace OneAgent.
+
+$cfgDownloadUrl = "<%= properties.dynatrace.downloadurl %>"
+
+$drainLogFile = "/var/vcap/sys/log/dynatrace-oneagent-windows/drain.log"
+$dynatraceServiceName = "Dynatrace OneAgent"
+$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains"
+$removeDomains = @("dynatrace.com", "dynatrace-managed.com")
+
+$tempDir = "/var/vcap/data/dt_tmp"
+$installerFile = "$tempDir/Dynatrace-OneAgent-Windows.zip"
+$agentExpandPath = "$tempDir/dynatrace-oneagent-windows"
+
+# ==================================================
+# Functions section
+# ==================================================
+
+function drainLog($level, $content) {
+	$line = "{0} {1} {2}" -f (Get-Date), $level, $content
+	Write-Output $line | Out-File -Encoding utf8 -Append $drainLogFile
+}
+
+drainLog "INFO" "Dynatrace BOSH Add-on version <%= spec.release.version %>"
+
+function removeItem($path) {
+	try {
+		drainLog "INFO" "Cleaning $path"
+		if (Test-Path -Path $path) {
+			try {
+				Remove-Item -Recurse $path -Force
+			} catch { }
+		}
+	} catch {
+		drainLog "ERROR" "Unable to remove directory: $path"
+	}
+}
+
+function cleanUp {
+	removeItem $installerFile
+	removeItem $agentExpandPath
+}
+
+# ==================================================
+# Main section
+# ==================================================
+
+drainLog "INFO" "Uninstalling $dynatraceServiceName..."
+
+$app = Get-WMiObject -Class Win32_Product | Where-Object { $_.Name -match "$dynatraceServiceName" }
+if ($app) {
+	$app.Uninstall() >$null 2>&1
+	drainLog "INFO" "Uninstalling $dynatraceServiceName done."
+} else {
+	drainLog "INFO" "$dynatraceServiceName not found in installed products."
+}
+
+if ($cfgDownloadUrl -ne "" -and $cfgDownloadUrl -match "^https:\/\/") {
+	$splitOptions = [System.StringSplitOptions]::RemoveEmptyEntries
+	$customDownloadUrl = $cfgDownloadUrl.Split("//", $splitOptions)[1].Split("/", $splitOptions)[0]
+	if ($customDownloadUrl -match "[a-zA-Z0-9]") {
+		$removeDomains += "$customDownloadUrl"
+	}
+}
+
+foreach ($domain in $removeDomains) {
+	if (Test-Path "$registryPath\$domain") {
+		Remove-Item "$registryPath\$domain" -Recurse
+		drainLog "INFO" "Removed $domain from trusted sites"
+	}
+}
+
+cleanUp
+
+drainLog "INFO" "Success"
+
+Write-Host 0
+exit 0
