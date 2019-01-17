@@ -11,7 +11,7 @@ export SSL_MODE="<%= p("dynatrace.sslmode") %>"
 export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
 export HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
 export HOST_TAGS="<%= p("dynatrace.hosttags") %>"
-export HOST_PROPS="<%= p("dynatrace.hostprops") %> BOSH_RELEASE_VERSION=<%= spec.release.version %>"
+export HOST_PROPS="<%= p("dynatrace.hostprops") %> BOSHReleaseVersion=<%= spec.release.version %>"
 export INFRA_ONLY="<%= p("dynatrace.infraonly") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"

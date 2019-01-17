@@ -40,7 +40,7 @@ describe 'dynatrace release' do
           expect(script).to match('^export APP_LOG_CONTENT_ACCESS="1"$')
           expect(script).to match('^export HOST_GROUP=""$')
           expect(script).to match('^export HOST_TAGS=""$')
-          expect(script).to match('^export HOST_PROPS=" BOSH_RELEASE_VERSION=123"$')
+          expect(script).to match('^export HOST_PROPS=" BOSHReleaseVersion=123"$')
           expect(script).to match('^export INFRA_ONLY="0"$')
         end
       end
