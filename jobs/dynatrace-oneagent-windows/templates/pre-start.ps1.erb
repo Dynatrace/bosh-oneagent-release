@@ -14,7 +14,7 @@ $cfgApiUrl = "<%= properties.dynatrace.apiurl %>"
 $cfgSslMode = "<%= properties.dynatrace.sslmode %>"
 $cfgHostGroup = "<%= properties.dynatrace.hostgroup %>"
 $cfgHostTags = "<%= properties.dynatrace.hosttags %>"
-$cfgHostProps = "<%= properties.dynatrace.hostprops %> BOSH_RELEASE_VERSION=<%= spec.release.version %>"
+$cfgHostProps = "<%= properties.dynatrace.hostprops %> BOSHReleaseVersion=<%= spec.release.version %>"
 $cfgInfraOnly = "<%= properties.dynatrace.infraonly %>"
 
 $oneagentwatchdogProcessName = "oneagentwatchdog"
