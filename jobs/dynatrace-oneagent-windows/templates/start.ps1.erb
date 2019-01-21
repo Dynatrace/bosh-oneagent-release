@@ -1,0 +1,49 @@
+# Starts the Dynatrace Service if it's not running, and monitors it.
+
+$exitHelperFile = "/var/vcap/data/dt_tmp/exit"
+$logDir = "/var/vcap/sys/log/dynatrace-oneagent-windows"
+$logFile = "$logDir/dynatrace-oneagent-windows-service.log"
+
+$dynatraceServiceName = "Dynatrace OneAgent"
+
+# ==================================================
+# Functions section
+# ==================================================
+
+function log($level, $content) {
+	$line = "{0} {1} {2}" -f (Get-Date), $level, $content
+
+	Write-Host $line
+	Write-Output $line | Out-File -Encoding utf8 -Append $logFile
+}
+
+# ==================================================
+# Main section
+# ==================================================
+
+log "Dynatrace BOSH Add-on version <%= spec.release.version %>"
+
+# If the service doesn't exist, exit.
+$service = Get-Service | Where-Object {$_.Name -eq $dynatraceServiceName}
+if ($service.Length -eq 0) {
+	log "ERROR" "$dynatraceServiceName service not found. Is the Dynatrace OneAgent installed? Exiting..."
+	exit 1
+}
+
+# If the service is not currently running, start it.
+if ($service.Status -eq 'Stopped') {
+	log "INFO" "$dynatraceServiceName service has been stopped. Starting..."
+	Start-Service -InputObject $service
+}
+
+log "INFO" "Service running. Waiting for sentinel..."
+
+# Do nothing, until we get the sentinel.
+while (!(Test-Path -Path $exitHelperFile)) {
+	Start-Sleep -s 5
+}
+
+# We got the sentinel, exit as successful.
+log "INFO" "Stopping request found. Exiting..."
+Remove-Item -Path $exitHelperFile
+exit 0
