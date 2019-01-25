@@ -1,16 +1,16 @@
 require 'json'
+require 'net/http'
 require 'rspec'
 require 'rspec/bash'
 require 'bosh/template/test'
 require 'pathname'
 require 'fileutils'
 
-
 describe 'dynatrace release' do
   let(:release) { Bosh::Template::Test::ReleaseDir.new(File.join(File.dirname(__FILE__), '../..')) }
   let(:stubbed_env) { Rspec::Bash::StubbedEnv.new(Rspec::Bash::StubbedEnv::BASH_STUB) }
 
-  let(:release_version) { Bosh::Template::Test::InstanceSpec.new().to_h().merge( {'release' => { 'version' => '123' }}) }
+  let(:release_version) { Bosh::Template::Test::InstanceSpec.new().to_h().merge({'release' => { 'version' => '123' }}) }
 
   describe 'dynatrace-oneagent job' do
     let(:job) { release.job('dynatrace-oneagent') }
@@ -164,16 +164,23 @@ describe 'dynatrace release' do
         let(:manifest) do
           {
             'dynatrace' => {
-              'environmentid' => ENV["DT_TENANT"],
-              'apitoken' => ENV["DT_API_TOKEN"],
-              'apiurl' => ENV["DT_API_URL"]
+              'environmentid' => 'testtenant',
+              'apitoken' => 'testapitoken',
+              'apiurl' => ENV["DEPLOYMENT_MOCK_URL"],
             }
           }
         end
         it 'parameter test' do
-          expect(ENV).to have_key("DT_TENANT")
-          expect(ENV).to have_key("DT_API_TOKEN")
-          expect(ENV).to have_key("DT_API_URL")
+          expect(ENV).to have_key("DEPLOYMENT_MOCK_URL")
+        end
+        it 'prepares deployment api' do
+          uri = URI.join(ENV["DEPLOYMENT_MOCK_URL"], '/register')
+          response = Net::HTTP.post_form(uri, {
+            'platform' => 'unix',
+            'installerType' => 'default',
+            'apiToken' => 'testapitoken',
+          })
+          expect(response).to be_a(Net::HTTPSuccess)
         end
         it 'exec', :install => true do
           script = template.render(manifest, spec: release_version)
@@ -199,7 +206,6 @@ describe 'dynatrace release' do
       end
     end
 
-
     describe 'start-oneagent.sh', :monit => true do
       let(:template) { job.template('bin/start-oneagent.sh') }
       let(:service_template) { job.template('bin/service.sh') }
@@ -211,7 +217,6 @@ describe 'dynatrace release' do
         expect(status.exitstatus).to eq 0
       end
     end
-
 
     describe 'drain' do
       let(:template) { job.template('bin/drain') }
@@ -233,7 +238,6 @@ describe 'dynatrace release' do
         end
       end
     end
-
 
   end
 end
