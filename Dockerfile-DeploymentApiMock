@@ -1,0 +1,10 @@
+# Using Go 1.12 to support go get for the module with a specific version. Update to release version once it's available.
+FROM golang:1.12beta2
+ENV GO111MODULE on
+RUN go get -d github.com/Dynatrace/deployment-api-mock@v0.1.0
+RUN CGO_ENABLED=0 GOOS=linux go install -v github.com/Dynatrace/deployment-api-mock
+
+FROM alpine:latest
+WORKDIR /workspace/
+COPY --from=0 /go/bin/deployment-api-mock .
+ENTRYPOINT ./deployment-api-mock

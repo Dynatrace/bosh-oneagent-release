@@ -1,0 +1,26 @@
+FROM ubuntu:16.04
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get -y install ruby dos2unix curl --no-install-recommends && \
+    apt-get clean && \
+    gem install bundler
+
+WORKDIR /tmp/workspace
+
+# Install Ruby dependencies
+COPY Gemfile ./
+RUN bundle
+
+# Copy scripts code and tests.
+COPY jobs/ ./jobs/
+COPY spec/ ./spec/
+
+# Traverse through the directory and force line endings to Unix.
+RUN find jobs/ spec/jobs/ -type f -name '*' | xargs dos2unix
+
+# Override /bin/systemctl - the Docker container doesn't start under Systemd, so calls to systemctl fail.
+# We don't really need systemctl, so this is enough as a workaround.
+RUN echo "#!/bin/sh\nexit 0" > /bin/systemctl
+
+ENTRYPOINT bundle exec rspec --format documentation

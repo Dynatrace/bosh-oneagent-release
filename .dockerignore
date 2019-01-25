@@ -1,0 +1,4 @@
+.git
+.dev_builds
+dev_releases
+*.tgz

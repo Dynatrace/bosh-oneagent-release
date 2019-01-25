@@ -1,0 +1,26 @@
+FROM ubuntu:14.04
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get -y install curl ca-certificates gnupg2 build-essential dos2unix --no-install-recommends && \
+    apt-get clean
+
+# Instructions from https://rvm.io/rvm/install
+RUN gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+RUN curl -sSL https://get.rvm.io | bash -s stable
+RUN /bin/bash -c '. /etc/profile.d/rvm.sh && rvm install 2.3 && gem install bundler'
+
+WORKDIR /tmp/workspace
+
+# Install Ruby dependencies
+COPY Gemfile ./
+RUN /bin/bash -c '. /etc/profile.d/rvm.sh && bundle'
+
+# Copy scripts code and tests.
+COPY jobs/ ./jobs/
+COPY spec/ ./spec/
+
+# Traverse through the directory and force line endings to Unix.
+RUN find jobs/ spec/jobs/ -type f -name '*' | xargs dos2unix
+
+ENTRYPOINT /bin/bash -c '. /etc/profile.d/rvm.sh && bundle exec rspec --format documentation'
