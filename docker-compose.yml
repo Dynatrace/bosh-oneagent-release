@@ -1,6 +1,7 @@
 version: "3"
 services:
   deployment-api-mock:
+    container_name: dynatrace-deployment-api-mock
     build:
       dockerfile: ./Dockerfile-DeploymentApiMock
       context: ./
