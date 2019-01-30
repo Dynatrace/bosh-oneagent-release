@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/Dynatrace/dynatrace-oneagent-operator.svg?style=shield)](https://circleci.com/gh/Dynatrace/dynatrace-oneagent-operator)
+[![CircleCI](https://circleci.com/gh/Dynatrace/bosh-oneagent-release.svg?style=svg)](https://circleci.com/gh/Dynatrace/bosh-oneagent-release)
 
 # Dynatrace OneAgent BOSH Release
 
