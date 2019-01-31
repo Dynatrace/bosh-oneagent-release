@@ -15,11 +15,11 @@ ECHO Building Ubuntu 16.04 image for tests...
 docker build --tag %TAG_UBUNTU_1604% --file Dockerfile-Test-Ubuntu16.04 . || GOTO :error
 
 ECHO Running tests for Ubuntu 14.04...
-docker run --rm --env "DEPLOYMENT_MOCK_URL=http://deployment-api-mock:8080" --network "bosh-oneagent-release_testnet" ^
+docker run --rm --env "DEPLOYMENT_MOCK_URL=http://localhost:8080" --network "container:dynatrace-deployment-api-mock" ^
            %TAG_UBUNTU_1404% || GOTO :error
 
 ECHO Running tests for Ubuntu 16.04...
-docker run --rm --env "DEPLOYMENT_MOCK_URL=http://deployment-api-mock:8080" --network "bosh-oneagent-release_testnet" ^
+docker run --rm --env "DEPLOYMENT_MOCK_URL=http://localhost:8080" --network "container:dynatrace-deployment-api-mock" ^
            %TAG_UBUNTU_1604% || GOTO :error
 
 ECHO Shutting down services...

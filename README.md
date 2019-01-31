@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/Dynatrace/bosh-oneagent-release.svg?style=svg)](https://circleci.com/gh/Dynatrace/bosh-oneagent-release)
+
 # Dynatrace OneAgent BOSH Release
 
 This is a [BOSH](http://bosh.io/) release for [Dynatrace](https://www.dynatrace.com/).
