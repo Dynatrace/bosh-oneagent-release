@@ -110,12 +110,12 @@ setHostProps() {
 downloadAgent() {
     local downloadUrl=$1
     local installerFile=$2
-    local iOriginHeader='x-dynatrace-iorigin:bosh'
+    local userAgent="bosh/<%= spec.release.version %>"
 
     if curl -h &> /dev/null ; then
-        local downloadCommand="curl -s -S -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile} --header ${iOriginHeader}"
+        local downloadCommand="curl -s -S -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile} -A ${userAgent}"
     elif wget -h &> /dev/null ; then
-        local downloadCommand="wget --connect-timeout=10 -nv $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile} --header=${iOriginHeader}"
+        local downloadCommand="wget --connect-timeout=10 -nv $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile} --user-agent=${userAgent}"
     else
         installLog "ERROR: Neither curl nor wget executable found!"
         exit 1
@@ -139,7 +139,7 @@ downloadAgent() {
             installLog "Download was successful"
             break
         fi
-    done
+    done    
 
     if [[ $downloadErrors == 3 ]]; then
         installLog "ERROR: Downloading agent installer failed!"
