@@ -113,7 +113,7 @@ downloadAgent() {
     local userAgent="bosh/<%= spec.release.version %>"
 
     if curl -h &> /dev/null ; then
-        local downloadCommand="curl -s -S -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile} -A ${userAgent}"
+        local downloadCommand="curl -s -S -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile} --user-agent ${userAgent}"
     elif wget -h &> /dev/null ; then
         local downloadCommand="wget --connect-timeout=10 -nv $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile} --user-agent=${userAgent}"
     else
