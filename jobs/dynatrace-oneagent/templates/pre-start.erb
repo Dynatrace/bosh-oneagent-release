@@ -13,6 +13,7 @@ export HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
 export HOST_TAGS="<%= p("dynatrace.hosttags") %>"
 export HOST_PROPS="<%= p("dynatrace.hostprops") %> BOSHReleaseVersion=<%= spec.release.version %>"
 export INFRA_ONLY="<%= p("dynatrace.infraonly") %>"
+export VALIDATEDOWNLOAD="<%= p("dynatrace.validatedownload") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
@@ -67,6 +68,17 @@ if [[ "$DOWNLOADURL" == "" ]]; then
     DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
 fi
 
+# set validatedownload to false (fallback) if not set
+if [[ "$VALIDATEDOWNLOAD" == "" ]]; then
+    installLog "Disabling download validation"
+    VALIDATEDOWNLOAD=false    
+fi
+
+if [[ "$VALIDATEDOWNLOAD" == true ]]; then
+    installLog "Enabling download validation"
+    VALIDATEDOWNLOAD=true
+fi
+
 SSL_INSECURE_CURL=""
 SSL_INSECURE_WGET=""
 if [[ "$SSL_MODE" == "all" ]]; then
@@ -107,7 +119,8 @@ setHostProps() {
     echo -n "${HOST_PROPS}" > "${hostPropsFile}"
 }
 
-validateAgent(){
+validateAgent() {
+    installLog "Validating the downloaded file..." 
     if [[ -e $1 ]]; then
         rm -f dt-root.cert.pem
         wget https://ca.dynatrace.com/dt-root.cert.pem
@@ -136,6 +149,7 @@ validateAgent(){
 downloadAgent() {
     local downloadUrl=$1
     local installerFile=$2
+    local validateDownload=$3
     local userAgent="bosh/<%= spec.release.version %>"
 
     if curl -h &> /dev/null ; then
@@ -163,11 +177,17 @@ downloadAgent() {
                 installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
             fi
         else
-            validateAgent $2
-            if [[ $? == 0 ]]; then
-                installLog "Download was successful"
+            if [[ $validateDownload == true ]]; then
+                validateAgent $2
+                if [[ $? -ne 0 ]]; then
+                    installLog "Download validation failed!"
+                else
+                    break
+                fi
+            else
                 break
             fi
+            break
         fi
     done
 
@@ -175,6 +195,8 @@ downloadAgent() {
         installLog "ERROR: Downloading agent installer failed!"
         exit 1
     fi
+
+    installLog "Download was successful"
 }
 
 runInstaller() {
@@ -226,7 +248,7 @@ setHostTags
 setHostProps
 
 INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
-downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE"
+downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE" "$VALIDATEDOWNLOAD"
 
 runInstaller
 
@@ -235,4 +257,3 @@ setWatchdogPid
 rm -r "$TMPDIR"
 
 installLog "Installation finished"
-

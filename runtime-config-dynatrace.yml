@@ -58,6 +58,9 @@ addons:
       # Enable cloud infrastructure monitoring mode.
       # Set this to 1 to activate it
       infraonly: 0
+      # Enable validation of the download via certificate
+      # Set this to true to active it
+      validatedownload: false
 
 
 # optional: extra addon configuration for Windows cells
