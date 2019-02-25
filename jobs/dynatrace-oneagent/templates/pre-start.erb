@@ -70,13 +70,15 @@ fi
 
 # set validatedownload to false (fallback) if not set
 if [[ "$VALIDATEDOWNLOAD" == "" ]]; then
-    installLog "Disabling download validation"
-    VALIDATEDOWNLOAD=false    
+    installLog "Download validation is off by default"
+    VALIDATEDOWNLOAD=false
 fi
 
 if [[ "$VALIDATEDOWNLOAD" == true ]]; then
     installLog "Enabling download validation"
     VALIDATEDOWNLOAD=true
+else
+    VALIDATEDOWNLOAD=false
 fi
 
 SSL_INSECURE_CURL=""
@@ -177,7 +179,7 @@ downloadAgent() {
                 installLog "Dynatrace agent download failed, retrying in $retryTimeout seconds"
             fi
         else
-            if [[ $validateDownload == true ]]; then
+            if [[ $validateDownload == true ]] && [[ -e $2 ]]; then
                 validateAgent $2
                 if [[ $? -ne 0 ]]; then
                     installLog "Download validation failed!"
@@ -187,7 +189,6 @@ downloadAgent() {
             else
                 break
             fi
-            break
         fi
     done
 
