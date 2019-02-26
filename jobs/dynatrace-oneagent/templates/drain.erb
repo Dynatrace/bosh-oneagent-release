@@ -14,8 +14,6 @@ installLog "Uninstalling the OneAgent..."
 
 agentDir="${INSTALL_DIR}"
 leftoverSymlink="/opt/dynatrace/oneagent"
-dynatraceLibDir="/var/lib/dynatrace"
-dynatraceLogDir="/var/vcap/data/sys/log/dynatrace-oneagent"
 
 if [[ ! -d "${agentDir}" ]]; then
     # fallback to cover previous versions of addon
@@ -32,22 +30,9 @@ if [[ -f "${agentDir}/agent/uninstall.sh" ]]; then
     fi
 fi
 
-installLog "Cleaning up ${agentDir}..."
-if [[ -d "${agentDir}" ]]; then
-    rm -rf ${agentDir}
-fi
-
-if [[ -d "${dynatraceLibDir}" ]]; then
-    rm -rf "${dynatraceLibDir}"
-fi
-
 if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
     installLog "Removing broken symlink ${leftoverSymlink}"
     rm "${leftoverSymlink}"
-fi
-
-if [[ -d "${dynatraceLogDir}" ]]; then
-    rm -rf "${dynatraceLogDir}"
 fi
 
 echo "0"
