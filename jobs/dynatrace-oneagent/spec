@@ -48,3 +48,4 @@ properties:
   dynatrace.validatedownload:
     description: 'Enable validation of the download via certificate'
     default: 'false'
+    
