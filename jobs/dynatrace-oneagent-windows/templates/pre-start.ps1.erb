@@ -93,9 +93,6 @@ function setupSslAcceptAll {
 	$trustAll = $truxtAllAssembly.CreateInstance("Local.ToolkitExtensions.Net.CertificatePolicy.TrustAll")
 
 	[System.Net.ServicePointManager]::CertificatePolicy = $trustAll
-
-	$allProtocols = [System.Net.SecurityProtocolType]'Tls,Tls11,Tls12'
-	[System.Net.ServicePointManager]::SecurityProtocol = $allProtocols
 }
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -230,6 +227,9 @@ if ($cfgDownloadUrl.length -eq 0){
 
 	$cfgDownloadUrl = "{0}/v1/deployment/installer/agent/windows/default-unattended/latest?Api-Token={1}" -f $cfgApiUrl, $cfgApiToken
 }
+
+updateTrustedSites
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls,Tls11,Tls12'
 
 # do we really want to log these?
 installLog "INFO" "Using API URL $cfgApiUrl"
