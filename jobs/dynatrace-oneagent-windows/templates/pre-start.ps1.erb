@@ -22,7 +22,7 @@ $tempDir = "C:\var\vcap\data\dt_tmp"
 $installerFile = "$tempDir\Dynatrace-OneAgent-Windows.exe"
 $agentExpandPath = "$tempDir\dynatrace-oneagent-windows"
 $logDir = "\var\vcap\sys\log\dynatrace-oneagent-windows"
-$logFile = "$logDir/dynatrace-install.log"
+$logFile = "$logDir\dynatrace-install.log"
 $configDir = "$env:ProgramData\dynatrace\oneagent\agent\config"
 
 # ==================================================
@@ -110,7 +110,7 @@ function downloadAgent() {
 
 		Try {
 			installLog "INFO" "Downloading Dynatrace agent from $cfgDownloadUrl to $installerFile"
-			$agentDownload =Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent
+			Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent
 			Break
 		} Catch {
 			installLog "ERROR" "Failed to download: $($_.Exception.Message)"
