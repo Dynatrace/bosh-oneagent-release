@@ -18,10 +18,10 @@ $cfgHostProps = "<%= properties.dynatrace.hostprops %> BOSHReleaseVersion=<%= sp
 $cfgInfraOnly = "<%= properties.dynatrace.infraonly %>"
 
 $oneagentwatchdogProcessName = "oneagentwatchdog"
-$tempDir = "/var/vcap/data/dt_tmp"
-$installerFile = "$tempDir/Dynatrace-OneAgent-Windows.zip"
-$agentExpandPath = "$tempDir/dynatrace-oneagent-windows"
-$logDir = "/var/vcap/sys/log/dynatrace-oneagent-windows"
+$tempDir = "C:\var\vcap\data\dt_tmp"
+$installerFile = "$tempDir\Dynatrace-OneAgent-Windows.exe"
+$agentExpandPath = "$tempDir\dynatrace-oneagent-windows"
+$logDir = "\var\vcap\sys\log\dynatrace-oneagent-windows"
 $logFile = "$logDir/dynatrace-install.log"
 $configDir = "$env:ProgramData\dynatrace\oneagent\agent\config"
 
@@ -95,17 +95,7 @@ function setupSslAcceptAll {
 	[System.Net.ServicePointManager]::CertificatePolicy = $trustAll
 }
 
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-
-function unzip($filename, $destination) {
-	installLog "INFO" "Extracting $filename to $destination"
-
-	[System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $destination)
-}
-
-function downloadAgent($src, $dest) {
-	$downloadUrl = $src
-	$installerPath = $dest
+function downloadAgent() {
 	$userAgent = "bosh/<%= spec.release.version %>"
 	$retryTimeout = 0
 	$downloadErrors = 0
@@ -119,8 +109,8 @@ function downloadAgent($src, $dest) {
 		Start-Sleep -s $retryTimeout
 
 		Try {
-			installLog "INFO" "Downloading Dynatrace agent from $downloadUrl to $installerPath"
-			Invoke-WebRequest $downloadUrl -Outfile $installerPath -UserAgent $userAgent
+			installLog "INFO" "Downloading Dynatrace agent from $cfgDownloadUrl to $installerFile"
+			$agentDownload =Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent
 			Break
 		} Catch {
 			installLog "ERROR" "Failed to download: $($_.Exception.Message)"
@@ -185,7 +175,6 @@ function removeItem($path) {
 
 function cleanUp() {
 	removeItem $installerFile
-	removeItem $agentExpandPath
 }
 
 # ==================================================
@@ -198,10 +187,6 @@ cleanup
 
 if (!(Test-Path $tempDir)) {
 	New-Item -ItemType Directory -Path $tempDir
-}
-
-if (!(Test-Path $agentExpandPath)) {
-	New-Item -ItemType Directory -Path $agentExpandPath
 }
 
 if (!(Test-Path $configDir)) {
@@ -225,7 +210,7 @@ if ($cfgDownloadUrl.length -eq 0){
 		$cfgApiUrl = "http://{0}.live.dynatrace.com/api" -f $cfgEnvironmentId
 	}
 
-	$cfgDownloadUrl = "{0}/v1/deployment/installer/agent/windows/default-unattended/latest?Api-Token={1}" -f $cfgApiUrl, $cfgApiToken
+	$cfgDownloadUrl = "{0}/v1/deployment/installer/agent/windows/default/latest?Api-Token={1}" -f $cfgApiUrl, $cfgApiToken
 }
 
 updateTrustedSites
@@ -234,19 +219,11 @@ updateTrustedSites
 # do we really want to log these?
 installLog "INFO" "Using API URL $cfgApiUrl"
 
-downloadAgent $cfgDownloadUrl $installerFile
-
-try {
-	installLog "INFO" "Expanding $installerFile to $agentExpandPath..."
-	unzip "$installerFile" "$agentExpandPath"
-} catch {
-	installLog "ERROR" "Failed to extract $installerFile to $agentExpandPath"
-	exit 1
-}
+downloadAgent
 
 #run the installer
 try {
-	$commandArguments = "/quiet /qn"
+	$commandArguments = "/quiet"
 	if ($cfgHostGroup -ne "") {
 		installLog "INFO" "Setting host group to $cfgHostGroup"
 		$commandArguments += " HOST_GROUP=$cfgHostGroup"
@@ -258,13 +235,13 @@ try {
 	}
 
 	# Arguments passed to install.bat will be appended to the agent installation command.
-	$process = Start-Process -WorkingDirectory $agentExpandPath -FilePath "install.bat" -ArgumentList $commandArguments -Wait -PassThru
+	$process = Start-Process -FilePath $installerFile -ArgumentList $commandArguments -Wait -PassThru
 	$process.WaitForExit()
 	if ($process.ExitCode -ne 0) {
 		throw "Installation process exited with code $($process.ExitCode)"
 	}
 } catch {
-	installLog "ERROR" "Failed to run OneAgent installer $agentExpandPath/install.bat: $($_.Exception.Message)"
+	installLog "ERROR" "Failed to run OneAgent installer: $installerFile - Exception: $($_.Exception.Message)"
 	exit 1
 }
 
