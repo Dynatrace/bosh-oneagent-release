@@ -112,7 +112,7 @@ function downloadAgent() {
 			installLog "INFO" "Downloading Dynatrace agent from $cfgDownloadUrl to $installerFile"
 			
 			if($cfgProxy -ne "") {
-				installLog "INFO" "Proxy settings found, setting system proxy to $cfgProxy"
+				installLog "INFO" "Proxy settings found, setting the proxy for the OneAgent download to $cfgProxy"
 				Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent -Proxy $cfgProxy
 			} else {
 				Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent
@@ -222,6 +222,11 @@ try {
 	if ($cfgInfraOnly -eq "1") {
 		installLog "INFO" "Enabling Infra-Only mode"
 		$commandArguments += " INFRA_ONLY=$cfgInfraOnly"
+	}
+
+	if ($cfgProxy -ne "") {
+		installLog "INFO" "Setting proxy to $cfgProxy"
+		$commandArguments += " PROXY=$cfgProxy"
 	}
 
 	# Arguments passed to install.bat will be appended to the agent installation command.
