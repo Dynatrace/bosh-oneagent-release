@@ -110,7 +110,14 @@ function downloadAgent() {
 
 		Try {
 			installLog "INFO" "Downloading Dynatrace agent from $cfgDownloadUrl to $installerFile"
-			Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent
+			
+			if($cfgProxy -ne "") {
+				installLog "INFO" "Proxy settings found, setting the proxy for the OneAgent download to $cfgProxy"
+				Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent -Proxy $cfgProxy
+			} else {
+				Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent
+			}
+			
 			Break
 		} Catch {
 			installLog "ERROR" "Failed to download: $($_.Exception.Message)"
@@ -124,22 +131,6 @@ function downloadAgent() {
 	if ($downloadErrors -eq 3) {
 		installLog "ERROR" "Downloading agent installer failed!"
 		Exit 1
-	}
-}
-
-function configureProxySettings {
-	if ($cfgProxy) {
-		installLog "INFO" "Proxy settings found, setting system proxy to $cfgProxy"
-
-		try {
-			$reg = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
-
-			Set-ItemProperty -Path $reg -Name ProxyServer -Value $cfgProxy
-			Set-ItemProperty -Path $reg -Name ProxyEnable -Value 1
-		} catch {
-			installLog "ERROR" "Setting system proxy failed!"
-			Exit 1
-		}
 	}
 }
 
@@ -193,7 +184,6 @@ if (!(Test-Path $configDir)) {
 	New-Item -ItemType Directory -Path $configDir
 }
 
-configureProxySettings
 setHostTags
 setHostProps
 
@@ -232,6 +222,11 @@ try {
 	if ($cfgInfraOnly -eq "1") {
 		installLog "INFO" "Enabling Infra-Only mode"
 		$commandArguments += " INFRA_ONLY=$cfgInfraOnly"
+	}
+
+	if ($cfgProxy -ne "") {
+		installLog "INFO" "Setting proxy to $cfgProxy"
+		$commandArguments += " PROXY=$cfgProxy"
 	}
 
 	# Arguments passed to install.bat will be appended to the agent installation command.
