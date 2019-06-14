@@ -21,6 +21,7 @@ CONFIG_DIR="/var/lib/dynatrace/oneagent/agent/config"
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"
 LOG_DIR="/var/vcap/sys/log/dynatrace-oneagent"
 LOG_FILE="$LOG_DIR/dynatrace-install.log"
+BOSH_DEPLOYMENT_CONFIG_FILE="$CONFIG_DIR/boshdeployment.conf"
 
 installLog() {
     echo "$1" | tee -a "${LOG_FILE}"
@@ -119,6 +120,15 @@ setHostProps() {
 
     installLog "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
     echo -n "${HOST_PROPS}" > "${hostPropsFile}"
+}
+
+createBoshDeploymentConfigFile() {
+    installLog "Creating Boshdeployment.conf file at '${BOSH_DEPLOYMENT_CONFIG_FILE}'"
+    if [ ! -f "$BOSH_DEPLOYMENT_CONFIG_FILE" ]; then
+        touch "$BOSH_DEPLOYMENT_CONFIG_FILE"
+    fi
+        echo "IsVersioned=false" > "$BOSH_DEPLOYMENT_CONFIG_FILE"
+        chmod 644 "$BOSH_DEPLOYMENT_CONFIG_FILE"
 }
 
 validateAgent() {
@@ -247,6 +257,7 @@ fi
 
 setHostTags
 setHostProps
+createBoshDeploymentConfigFile
 
 INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
 downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE" "$VALIDATEDOWNLOAD"

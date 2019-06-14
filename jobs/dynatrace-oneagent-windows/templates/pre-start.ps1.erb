@@ -24,6 +24,7 @@ $agentExpandPath = "$tempDir\dynatrace-oneagent-windows"
 $logDir = "C:\var\vcap\sys\log\dynatrace-oneagent-windows"
 $logFile = "$logDir\dynatrace-install.log"
 $configDir = "$env:ProgramData\dynatrace\oneagent\agent\config"
+$boshDeploymentConfigFile = "$configDir\boshdeployment.conf"
 
 # ==================================================
 # function section
@@ -148,6 +149,11 @@ function setHostProps {
 
 	installLog "INFO" "Setting host properties to '$cfgHostProps' at $hostPropsFile"
 	Set-Content -Path $hostPropsFile -Value $cfgHostProps
+}
+
+function createBoshDeploymentConfigFile {
+	installLog "INFO" "Creating boshdeployment.conf file at '$boshDeploymentConfigFile'"
+    New-Item -path $boshDeploymentConfigFile -value "IsVersioned=false"
 }
 
 function removeItem($path) {
