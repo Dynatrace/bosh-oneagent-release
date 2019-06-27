@@ -1,0 +1,19 @@
+name: dynatrace-oneagent
+version: 1.2.1
+commit_hash: 6d35b5c
+uncommitted_changes: false
+jobs:
+- name: dynatrace-oneagent
+  version: 8f257ad6c4cd018387815a09de214acac056fd545f5febf9d8a901960f85d4b5
+  fingerprint: 8f257ad6c4cd018387815a09de214acac056fd545f5febf9d8a901960f85d4b5
+  sha1: sha256:a2a91249e1ff7a7990b9bb0cf9326ed99e61bc7a2b6eab1dbf7b5aa342da4490
+  packages: []
+- name: dynatrace-oneagent-windows
+  version: 4eb56a85e773969502dadb20c5b8aaf3f23c4f850d346ba41b40dca2fb0b0e8b
+  fingerprint: 4eb56a85e773969502dadb20c5b8aaf3f23c4f850d346ba41b40dca2fb0b0e8b
+  sha1: sha256:57ab90e6fb5a3013955ecb6ba5bd5875c336d232b59c9d106f270efefe8475e6
+  packages: []
+license:
+  version: 605bb65ed86b512c4a242fe1137d4f7be5218f9390e4317c5815d081ac3f6e6c
+  fingerprint: 605bb65ed86b512c4a242fe1137d4f7be5218f9390e4317c5815d081ac3f6e6c
+  sha1: sha256:b168e7d72a3bb7814a1d2d34d57b9a05db827b00551862ca70a8e5882cfc9c52
