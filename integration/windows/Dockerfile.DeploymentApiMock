@@ -1,0 +1,10 @@
+FROM golang:1.12
+WORKDIR c:/ws/
+RUN git clone --branch v0.2.0 https://github.com/Dynatrace/deployment-api-mock.git
+RUN cd deployment-api-mock\cmd\server; go build -v -o c:\ws\server.exe
+RUN cd deployment-api-mock\cmd\winsvc; go build -v -o c:\ws\winsvc.exe
+
+FROM mcr.microsoft.com/windows/nanoserver:1809
+WORKDIR c:/ws/
+COPY --from=0 c:/ws/server.exe c:/ws/winsvc.exe ./
+ENTRYPOINT server.exe

@@ -20,7 +20,6 @@ $cfgInfraOnly = "<%= properties.dynatrace.infraonly %>"
 $oneagentwatchdogProcessName = "oneagentwatchdog"
 $tempDir = "C:\var\vcap\data\dt_tmp"
 $installerFile = "$tempDir\Dynatrace-OneAgent-Windows.exe"
-$agentExpandPath = "$tempDir\dynatrace-oneagent-windows"
 $logDir = "C:\var\vcap\sys\log\dynatrace-oneagent-windows"
 $logFile = "$logDir\dynatrace-install.log"
 $configDir = "$env:ProgramData\dynatrace\oneagent\agent\config"
@@ -189,11 +188,9 @@ setHostProps
 
 # download mode setup
 if ($cfgDownloadUrl.length -eq 0){
-	if ($cfgEnvironmentId.length -eq 0) {
-		installLog "ERROR" "Invalid configuration: Please provide environment ID!"
+	if (($cfgEnvironmentId.length -eq 0) -or ($cfgApiToken.Length -eq 0)) {
+		installLog "ERROR" "Invalid configuration: Please provide environment ID and API token!"
 		exit 1
-	} elseif ($cfgApiToken.Length -eq 0) {
-		installLog "ERROR" "Invalid configuration: Please provide API token!"
 	}
 
 	if ($cfgApiUrl.length -eq 0)  {
@@ -248,7 +245,7 @@ $watchdogWaitCounter = 0
 
 do {
 	if ($watchdogWaitCounter -gt 300) {
-		installLog "ERROR" "{0} did not start in time!" -f $oneagentwatchdogProcessName
+		installLog "ERROR" "$oneagentwatchdogProcessName did not start in time!"
 		exit 1
 	}
 
