@@ -6,7 +6,7 @@ require 'bosh/template/test'
 require 'pathname'
 require 'fileutils'
 
-describe 'dynatrace release' do
+describe 'dynatrace release', :linux do
   let(:release) { Bosh::Template::Test::ReleaseDir.new(File.join(File.dirname(__FILE__), '../..')) }
   let(:stubbed_env) { Rspec::Bash::StubbedEnv.new(Rspec::Bash::StubbedEnv::BASH_STUB) }
 

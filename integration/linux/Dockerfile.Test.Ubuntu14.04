@@ -23,4 +23,4 @@ COPY spec/ ./spec/
 # Traverse through the directory and force line endings to Unix.
 RUN find jobs/ spec/jobs/ -type f -name '*' | xargs dos2unix
 
-ENTRYPOINT /bin/bash -c '. /etc/profile.d/rvm.sh && bundle exec rspec --format documentation'
+ENTRYPOINT /bin/bash -c '. /etc/profile.d/rvm.sh && bundle exec rspec --tag linux --format documentation'

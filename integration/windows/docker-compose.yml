@@ -1,0 +1,13 @@
+version: "3"
+services:
+  apimock:
+    container_name: apimock
+    build:
+      dockerfile: ./Dockerfile.DeploymentApiMock
+      context: ./
+    ports:
+      - "8080"
+    networks:
+      - default
+networks:
+  default:

@@ -1,0 +1,9 @@
+FROM golang:1.12
+WORKDIR /ws
+RUN git clone --branch v0.2.0 https://github.com/Dynatrace/deployment-api-mock.git
+RUN cd deployment-api-mock/cmd/server && CGO_ENABLED=0 go build -v -o /ws/server
+
+FROM alpine:latest
+WORKDIR /workspace/
+COPY --from=0 /ws/server .
+ENTRYPOINT ./server

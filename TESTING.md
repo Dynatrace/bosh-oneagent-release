@@ -1,21 +1,20 @@
 # Integration Tests for Dynatrace OneAgent BOSH Release
 
-There are scripts available that run the tests under Docker containers trying to simulate Ubuntu 14.04 and Ubuntu 16.04 environments.
+There are scripts available that run the tests under Docker containers trying to simulate Linux and Windows environments.
 
 ## Requirements
 * Docker
 * docker-compose
 
-## Run tests
+## Linux integration tests
 
-Linux:
+The tests run in both Ubuntu 14.04 and Ubuntu 16.04 images and can be executed with,
 
-```bash
-$ scripts/integration-tests.sh
-```
+Linux: `$ integration/linux/run-tests.sh`
+Windows: `> integration/linux/run-tests.bat`
 
-Windows:
+## Windows integration tests
 
-```batch
-> scripts\integration-tests.bat
-```
+The tests run in both Windows Server 2016 and Windows Server 2019 and can be executed with,
+
+`> integration/windows/run-tests.bat`
