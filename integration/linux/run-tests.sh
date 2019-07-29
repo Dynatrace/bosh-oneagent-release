@@ -47,4 +47,17 @@ function demo {
     echo $result
 }
 
+function demo_duplicate {
+    result=0
+ 
+    while true; do
+        result=1
+        break
+    done
+
+    echo $result
+
+}
+
 demo
+demo_duplicate
