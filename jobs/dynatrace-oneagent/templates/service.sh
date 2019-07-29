@@ -20,3 +20,5 @@ runServiceCommand() {
         fi
     fi
 }
+
+echo "Done"
