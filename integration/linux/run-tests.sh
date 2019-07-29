@@ -35,3 +35,16 @@ docker run --rm --env "DEPLOYMENT_MOCK_URL=http://apimock:8080" --network "${pro
 
 echo "Shutting down services..."
 docker-compose $docker_compose_opts down
+
+function demo {
+    result=0
+
+    while true; do
+        result=1
+        break
+    done
+
+    echo $result
+}
+
+demo
