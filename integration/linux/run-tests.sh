@@ -17,7 +17,7 @@ function fail {
     echo "Shutting down services..."
     docker-compose $docker_compose_opts down
 
-    echo "Task failed"
+    echo "Error: Task failed"
     exit 1
 }
 
