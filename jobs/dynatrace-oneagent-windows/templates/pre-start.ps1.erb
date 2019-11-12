@@ -98,6 +98,7 @@ function downloadAgent() {
 	$userAgent = "bosh/<%= spec.release.version %>"
 	$retryTimeout = 0
 	$downloadErrors = 0
+    $authHeader = @{ Authorization = "Api-Token $cfgApiToken" }
 
 	if ($cfgSslMode -eq "all") {
 		installLog "INFO" "Accepting all ssl certificates"
@@ -112,9 +113,9 @@ function downloadAgent() {
 			
 			if($cfgProxy -ne "") {
 				installLog "INFO" "Proxy settings found, setting the proxy for the OneAgent download to $cfgProxy"
-				Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent -Proxy $cfgProxy
+				Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent -Proxy $cfgProxy -Header $authHeader
 			} else {
-				Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent
+				Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent -Header $authHeader
 			}
 			
 			Break
@@ -197,7 +198,7 @@ if ($cfgDownloadUrl.length -eq 0){
 		$cfgApiUrl = "http://{0}.live.dynatrace.com/api" -f $cfgEnvironmentId
 	}
 
-	$cfgDownloadUrl = "{0}/v1/deployment/installer/agent/windows/default/latest?Api-Token={1}" -f $cfgApiUrl, $cfgApiToken
+	$cfgDownloadUrl = "{0}/v1/deployment/installer/agent/windows/default/latest" -f $cfgApiUrl
 }
 
 updateTrustedSites

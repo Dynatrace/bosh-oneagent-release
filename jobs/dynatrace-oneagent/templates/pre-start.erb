@@ -65,7 +65,7 @@ if [[ "$DOWNLOADURL" == "" ]]; then
     if [[ "$API_URL" == "" ]]; then
         API_URL="https://$ENV_ID.live.dynatrace.com/api"
     fi
-    DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
+    DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest"
 fi
 
 # set validatedownload to false (fallback) if not set
@@ -155,7 +155,7 @@ downloadAgent() {
     local userAgent="bosh/<%= spec.release.version %>"
 
     if curl -h &> /dev/null ; then
-        local downloadCommand="curl -s -S -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile} --user-agent ${userAgent}"
+    local downloadCommand="curl -s -S -f --connect-timeout 10 $SSL_INSECURE_CURL ${downloadUrl} -o ${installerFile} --user-agent ${userAgent}"
     elif wget -h &> /dev/null ; then
         local downloadCommand="wget --connect-timeout=10 -nv $SSL_INSECURE_WGET ${downloadUrl} -O ${installerFile} --user-agent=${userAgent}"
     else
@@ -169,8 +169,8 @@ downloadAgent() {
         sleep $retryTimeout
 
         installLog "Downloading agent installer from ${downloadUrl}"
-        $downloadCommand 2>&1 | tee -a "${LOG_FILE}"
-        
+        $downloadCommand --header "Authorization: Api-Token $API_TOKEN" 2>&1 | tee -a "${LOG_FILE}"
+
         if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             downloadErrors=$((downloadErrors+1))
             retryTimeout=$((retryTimeout+5))
