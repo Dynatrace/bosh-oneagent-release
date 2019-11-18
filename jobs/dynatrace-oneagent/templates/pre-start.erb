@@ -65,7 +65,7 @@ if [[ "$DOWNLOADURL" == "" ]]; then
     if [[ "$API_URL" == "" ]]; then
         API_URL="https://$ENV_ID.live.dynatrace.com/api"
     fi
-    DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest?Api-Token=$API_TOKEN"
+    DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest"
 fi
 
 # set validatedownload to false (fallback) if not set
@@ -169,8 +169,8 @@ downloadAgent() {
         sleep $retryTimeout
 
         installLog "Downloading agent installer from ${downloadUrl}"
-        $downloadCommand 2>&1 | tee -a "${LOG_FILE}"
-        
+        $downloadCommand --header "Authorization: Api-Token $API_TOKEN" 2>&1 | tee -a "${LOG_FILE}"
+
         if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             downloadErrors=$((downloadErrors+1))
             retryTimeout=$((retryTimeout+5))
