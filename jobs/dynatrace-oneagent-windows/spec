@@ -44,3 +44,6 @@ properties:
   dynatrace.infraonly:
     description: 'Enable Cloud-Infrastructure only monitoring (Disables Full-Stack monitoring)'
     default: '0'
+  dynatrace.installerargs:
+    description: 'Arguments to hand over to the Dynatrace OneAgent installer'
+    default: ''

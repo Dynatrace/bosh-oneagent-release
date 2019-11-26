@@ -14,6 +14,7 @@ export HOST_TAGS="<%= p("dynatrace.hosttags") %>"
 export HOST_PROPS="<%= p("dynatrace.hostprops") %> BOSHReleaseVersion=<%= spec.release.version %>"
 export INFRA_ONLY="<%= p("dynatrace.infraonly") %>"
 export VALIDATEDOWNLOAD="<%= p("dynatrace.validatedownload") %>"
+export INSTALLERARGS="<%= p("dynatrace.installerargs") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
@@ -33,26 +34,35 @@ if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}" "${CONFIG_DIR}"; then
     exit 1
 fi
 
-ARGS=""
-if [[ "$PROXY" != "" ]]; then
-    installLog "Setting proxy to ${PROXY}"
-    ARGS="$ARGS PROXY=$PROXY"
-    export https_proxy="$PROXY"
-    export http_proxy="$PROXY"
-fi
+if [[ -z "$INSTALLERARGS" ]]; then
+    if [[ "$PROXY" != "" ]]; then
+        installLog "Setting proxy to ${PROXY}"
+        INSTALLERARGS="$INSTALLERARGS PROXY=$PROXY"
+        export https_proxy="$PROXY"
+        export http_proxy="$PROXY"
+    fi
 
-if [[ "$APP_LOG_CONTENT_ACCESS" == "1" ]]; then
-    ARGS="$ARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
-fi
+    if [[ "$APP_LOG_CONTENT_ACCESS" == "1" ]]; then
+        installLog "Enabling log monitoring"
+        INSTALLERARGS="$INSTALLERARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
+    fi
 
-if [[ "$HOST_GROUP" != "" ]]; then
-    installLog "Setting host group to ${HOST_GROUP}"
-    ARGS="$ARGS HOST_GROUP=$HOST_GROUP"
-fi
+    if [[ "$HOST_GROUP" != "" ]]; then
+        installLog "Setting host group to ${HOST_GROUP}"
+        INSTALLERARGS="$INSTALLERARGS HOST_GROUP=$HOST_GROUP"
+    fi
 
-if [[ "$INFRA_ONLY" == "1" ]]; then
-    installLog "Enabling Infra-Only mode"
-    ARGS="$ARGS INFRA_ONLY=$INFRA_ONLY"
+    if [[ "$INFRA_ONLY" == "1" ]]; then
+        installLog "Enabling Infra-Only mode"
+        INSTALLERARGS="$INSTALLERARGS INFRA_ONLY=$INFRA_ONLY"
+    fi
+else
+    if [[ "$INSTALLERARGS" =~ "APP_LOG_CONTENT_ACCESS" ]]; then
+        INSTALLERARGS="$INSTALLERARGS"
+    else
+        installLog "Enabling log monitoring"
+        INSTALLERARGS="$INSTALLERARGS APP_LOG_CONTENT_ACCESS=1"
+    fi
 fi
 
 # set downloadurl to fallback if not given
@@ -217,7 +227,7 @@ runInstaller() {
         pgrep -f Dynatrace-OneAgent > /dev/null
         local installerFound=$?
         if [[ $installerFound -eq 1 ]]; then
-            sh "${INSTALLER_FILE}" ${ARGS} INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
+            sh "${INSTALLER_FILE}" ${INSTALLERARGS} INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
             if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
                 installLog "ERROR: Installation failed"
                 exit 1
@@ -236,7 +246,6 @@ runInstaller() {
             installLog "ERROR: Waiting for other installer to end took too long"
             exit 1
         fi
-
     done
 }
 

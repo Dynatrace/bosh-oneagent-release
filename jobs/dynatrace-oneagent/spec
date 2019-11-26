@@ -48,4 +48,6 @@ properties:
   dynatrace.validatedownload:
     description: 'Enable validation of the download via certificate'
     default: 'false'
-    
+  dynatrace.installerargs:
+    description: 'Arguments to hand over to the Dynatrace OneAgent installer'
+    default: ''
