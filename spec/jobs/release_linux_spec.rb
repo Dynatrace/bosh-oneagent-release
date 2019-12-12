@@ -102,7 +102,7 @@ describe 'dynatrace release', :linux do
           it 'exec' do
             script = template.render(manifest, spec: release_version)
             stdout, stderr, status = stubbed_env.execute_inline(script)
-            expect(stdout).to include("Downloading agent installer from apiurl/v1/deployment/installer/agent/unix/default/latest?Api-Token=na")
+            expect(stdout).to include("Downloading agent installer from apiurl/v1/deployment/installer/agent/unix/default/latest")
             expect(stdout).to match(/ERROR: Downloading agent installer failed!/)
             expect(status.exitstatus).to eq 1
           end
