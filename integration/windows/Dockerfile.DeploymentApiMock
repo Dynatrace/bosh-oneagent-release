@@ -1,6 +1,6 @@
 FROM golang:1.12
 WORKDIR c:/ws/
-RUN git clone --branch v0.2.0 https://github.com/Dynatrace/deployment-api-mock.git
+RUN git clone --branch v0.3.0 https://github.com/Dynatrace/deployment-api-mock.git
 RUN cd deployment-api-mock\cmd\server; go build -v -o c:\ws\server.exe
 RUN cd deployment-api-mock\cmd\winsvc; go build -v -o c:\ws\winsvc.exe
 
