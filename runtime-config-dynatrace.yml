@@ -61,6 +61,10 @@ addons:
       # Enable validation of the download via certificate
       # Set this to true to active it
       validatedownload: false
+      # Hand over any installer argument
+      # Use either this OR the hostgroup, hosttags, infraonly, proxy properties.
+      # Usage of 'installerargs' will overwrite the others!
+      installerargs: HOST_GROUP=example_hostgroup INFRA_ONLY=0
 
 
 # optional: extra addon configuration for Windows cells
