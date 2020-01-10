@@ -17,6 +17,11 @@ function log($level, $content) {
 	Write-Output $line | Out-File -Encoding utf8 -Append $logFile
 }
 
+function checkDynatraceService {
+  $service = Get-Service | Where-Object {$_.Name -eq $dynatraceServiceName}
+  return $service
+}
+
 # ==================================================
 # Main section
 # ==================================================
