@@ -39,7 +39,13 @@ setWatchdogPid() {
 checkForInstaller
 
 if ! runServiceCommand start; then
-    exit 1
+    echo "Couldn't start OneAgent service, trying to repair environment by re-running installation procedure"
+    "$(dirname "${BASH_SOURCE[0]}")/pre-start"
+
+    if ! runServiceCommand start; then
+        echo "ERROR: Reparation meassures failed, exiting"
+        exit 1
+    fi
 fi
 
 setWatchdogPid
