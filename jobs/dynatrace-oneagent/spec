@@ -51,3 +51,6 @@ properties:
   dynatrace.installerargs:
     description: 'Arguments to hand over to the Dynatrace OneAgent installer'
     default: ''
+  dynatrace.injectionrules:
+    description: 'DT_INJECTION_RULES'
+    default: ''

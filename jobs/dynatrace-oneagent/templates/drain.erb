@@ -35,5 +35,13 @@ if [[ -L "${leftoverSymlink}" ]] && [[ ! -e "${leftoverSymlink}" ]]; then
     rm "${leftoverSymlink}"
 fi
 
+# check if DT_INJECTION_RULES is set in systemd env vars
+if systemctl show-environment | grep DT_INJECTION_RULES > /dev/null; then
+    installLog "INFO Removing DT_INJECTION_RULES environment variable from systemd"
+    systemctl unset-environment DT_INJECTION_RULES
+    sed -i '/DT_INJECTION_RULES/d' /etc/systemd/system.conf
+    systemctl daemon-reload
+fi
+
 echo "0"
 exit 0
