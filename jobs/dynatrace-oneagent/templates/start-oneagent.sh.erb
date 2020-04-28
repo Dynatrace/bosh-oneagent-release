@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# shellcheck source=jobs/dynatrace-oneagent/templates/service.sh
 source "$(dirname "${BASH_SOURCE[0]}")/service.sh"
 
 RUN_DIR="/var/vcap/sys/run/dynatrace-oneagent"

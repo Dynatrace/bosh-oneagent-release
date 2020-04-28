@@ -2,20 +2,35 @@
 
 export PATH="/var/vcap/packages/dynatrace-oneagent:$PATH"
 
-export DOWNLOADURL="<%= p("dynatrace.downloadurl") %>"
-export PROXY="<%= p("dynatrace.proxy") %>"
-export ENV_ID="<%= p("dynatrace.environmentid") %>"
-export API_TOKEN="<%= p("dynatrace.apitoken") %>"
-export API_URL="<%= p("dynatrace.apiurl") %>"
-export SSL_MODE="<%= p("dynatrace.sslmode") %>"
-export APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
-export HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
-export HOST_TAGS="<%= p("dynatrace.hosttags") %>"
-export HOST_PROPS="<%= p("dynatrace.hostprops") %> BOSHReleaseVersion=<%= spec.release.version %>"
-export INFRA_ONLY="<%= p("dynatrace.infraonly") %>"
-export VALIDATEDOWNLOAD="<%= p("dynatrace.validatedownload") %>"
-export INSTALLERARGS="<%= p("dynatrace.installerargs") %>"
-export INJECTION_RULES="<%= p("dynatrace.injectionrules") %>"
+# Disabling because shellcheck stumbles over the eruby syntax here
+# shellcheck disable=SC2140
+export CFG_DOWNLOADURL="<%= p("dynatrace.downloadurl") %>"
+# shellcheck disable=SC2140
+export CFG_PROXY="<%= p("dynatrace.proxy") %>"
+# shellcheck disable=SC2140
+export CFG_ENV_ID="<%= p("dynatrace.environmentid") %>"
+# shellcheck disable=SC2140
+export CFG_API_TOKEN="<%= p("dynatrace.apitoken") %>"
+# shellcheck disable=SC2140
+export CFG_API_URL="<%= p("dynatrace.apiurl") %>"
+# shellcheck disable=SC2140
+export CFG_SSL_MODE="<%= p("dynatrace.sslmode") %>"
+# shellcheck disable=SC2140
+export CFG_APP_LOG_CONTENT_ACCESS="<%= p("dynatrace.applogaccess") %>"
+# shellcheck disable=SC2140
+export CFG_HOST_GROUP="<%= p("dynatrace.hostgroup") %>"
+# shellcheck disable=SC2140
+export CFG_HOST_TAGS="<%= p("dynatrace.hosttags") %>"
+# shellcheck disable=SC2140
+export CFG_HOST_PROPS="<%= p("dynatrace.hostprops") %> BOSHReleaseVersion=<%= spec.release.version %>"
+# shellcheck disable=SC2140
+export CFG_INFRA_ONLY="<%= p("dynatrace.infraonly") %>"
+# shellcheck disable=SC2140
+export CFG_VALIDATEDOWNLOAD="<%= p("dynatrace.validatedownload") %>"
+# shellcheck disable=SC2140
+export CFG_INSTALLERARGS="<%= p("dynatrace.installerargs") %>"
+# shellcheck disable=SC2140
+export CFG_INJECTION_RULES="<%= p("dynatrace.injectionrules") %>"
 
 export TMPDIR="/var/vcap/data/dt_tmp"
 
@@ -35,74 +50,76 @@ if ! mkdir -p "${RUN_DIR}" "${LOG_DIR}" "${CONFIG_DIR}"; then
     exit 1
 fi
 
-if [[ -n "$INJECTION_RULES" ]]; then
+if [[ -n "$CFG_INJECTION_RULES" ]]; then
     installLog "INFO: Config for DT_INJECTION_RULES found, setting global environment variable"
 
-    systemctl set-environment DT_INJECTION_RULES="$INJECTION_RULES"
-    echo "DefaultEnvironment=DT_INJECTION_RULES=$INJECTION_RULES" >> /etc/systemd/system.conf
+    systemctl set-environment DT_INJECTION_RULES="$CFG_INJECTION_RULES"
+    echo "DefaultEnvironment=DT_INJECTION_RULES=$CFG_INJECTION_RULES" >> /etc/systemd/system.conf
     systemctl daemon-reload
 fi
 
-if [[ -z "$INSTALLERARGS" ]]; then
-    if [[ "$PROXY" != "" ]]; then
-        installLog "Setting proxy to ${PROXY}"
-        INSTALLERARGS="$INSTALLERARGS PROXY=$PROXY"
-        export https_proxy="$PROXY"
-        export http_proxy="$PROXY"
+if [[ -z "$CFG_INSTALLERARGS" ]]; then
+    if [[ "$CFG_PROXY" != "" ]]; then
+        installLog "Setting proxy to ${CFG_PROXY}"
+        INSTALLERARGS="$CFG_INSTALLERARGS PROXY=$CFG_PROXY"
+        export https_proxy="$CFG_PROXY"
+        export http_proxy="$CFG_PROXY"
     fi
 
-    if [[ "$APP_LOG_CONTENT_ACCESS" == "1" ]]; then
+    if [[ "$CFG_APP_LOG_CONTENT_ACCESS" == "1" ]]; then
         installLog "Enabling log monitoring"
-        INSTALLERARGS="$INSTALLERARGS APP_LOG_CONTENT_ACCESS=$APP_LOG_CONTENT_ACCESS"
+        CFG_INSTALLERARGS="$CFG_INSTALLERARGS APP_LOG_CONTENT_ACCESS=$CFG_APP_LOG_CONTENT_ACCESS"
     fi
 
-    if [[ "$HOST_GROUP" != "" ]]; then
-        installLog "Setting host group to ${HOST_GROUP}"
-        INSTALLERARGS="$INSTALLERARGS HOST_GROUP=$HOST_GROUP"
+    if [[ "$CFG_HOST_GROUP" != "" ]]; then
+        installLog "Setting host group to ${CFG_HOST_GROUP}"
+        INSTALLERARGS="$CFG_INSTALLERARGS HOST_GROUP=$CFG_HOST_GROUP"
     fi
 
-    if [[ "$INFRA_ONLY" == "1" ]]; then
+    if [[ "$CFG_INFRA_ONLY" == "1" ]]; then
         installLog "Enabling Infra-Only mode"
-        INSTALLERARGS="$INSTALLERARGS INFRA_ONLY=$INFRA_ONLY"
+        INSTALLERARGS="$CFG_INSTALLERARGS INFRA_ONLY=$CFG_INFRA_ONLY"
     fi
 else
-    if [[ "$INSTALLERARGS" =~ "APP_LOG_CONTENT_ACCESS" ]]; then
-        INSTALLERARGS="$INSTALLERARGS"
+    if [[ "$CFG_INSTALLERARGS" =~ "APP_LOG_CONTENT_ACCESS" ]]; then
+        INSTALLERARGS="$CFG_INSTALLERARGS"
     else
         installLog "Enabling log monitoring"
-        INSTALLERARGS="$INSTALLERARGS APP_LOG_CONTENT_ACCESS=1"
+        INSTALLERARGS="$CFG_INSTALLERARGS APP_LOG_CONTENT_ACCESS=1"
     fi
 fi
 
 # set downloadurl to fallback if not given
-if [[ "$DOWNLOADURL" == "" ]]; then
-    if [[ "$ENV_ID" == "" ]] || [[ "$API_TOKEN" == "" ]]; then
+if [[ -z "$CFG_DOWNLOADURL" ]]; then
+    if [[ "$CFG_ENV_ID" == "" ]] || [[ "$CFG_API_TOKEN" == "" ]]; then
         installLog "Invalid configuration:"
         installLog "Please set environment ID and API token for Dynatrace OneAgent."
         exit 1
     fi
-    if [[ "$API_URL" == "" ]]; then
-        API_URL="https://$ENV_ID.live.dynatrace.com/api"
+
+    if [[ -z "$CFG_API_URL" ]]; then
+        CFG_API_URL="https://$CFG_ENV_ID.live.dynatrace.com/api"
     fi
-    DOWNLOADURL="$API_URL/v1/deployment/installer/agent/unix/default/latest"
+
+    DOWNLOADURL="$CFG_API_URL/v1/deployment/installer/agent/unix/default/latest"
+else
+    DOWNLOADURL="$CFG_DOWNLOADURL"
 fi
 
 # set validatedownload to false (fallback) if not set
-if [[ "$VALIDATEDOWNLOAD" == "" ]]; then
+if [[ "$CFG_VALIDATEDOWNLOAD" == "" ]]; then
     installLog "Download validation is off by default"
-    VALIDATEDOWNLOAD=false
-fi
-
-if [[ "$VALIDATEDOWNLOAD" == true ]]; then
+    CFG_VALIDATEDOWNLOAD=false
+elif [[ "$CFG_VALIDATEDOWNLOAD" == true ]]; then
     installLog "Enabling download validation"
-    VALIDATEDOWNLOAD=true
+    CFG_VALIDATEDOWNLOAD=true
 else
-    VALIDATEDOWNLOAD=false
+    CFG_VALIDATEDOWNLOAD=false
 fi
 
 SSL_INSECURE_CURL=""
 SSL_INSECURE_WGET=""
-if [[ "$SSL_MODE" == "all" ]]; then
+if [[ "$CFG_SSL_MODE" == "all" ]]; then
     installLog "accepting all ssl certificates for agent download"
     SSL_INSECURE_CURL="--insecure"
     SSL_INSECURE_WGET="--no-check-certificate"
@@ -125,36 +142,41 @@ setWatchdogPid() {
 }
 
 setHostTags() {
-    if [[ "${HOST_TAGS}" != "" ]]; then
+    if [[ "${CFG_HOST_TAGS}" != "" ]]; then
         local hostTagsFile="${CONFIG_DIR}/hostautotag.conf"
 
-        installLog "Setting host tags to '${HOST_TAGS}' at ${hostTagsFile}"
-        echo -n "${HOST_TAGS}" > "${hostTagsFile}"
+        installLog "Setting host tags to '${CFG_HOST_TAGS}' at ${hostTagsFile}"
+        echo -n "${CFG_HOST_TAGS}" > "${hostTagsFile}"
     fi
 }
 
 setHostProps() {
     local hostPropsFile="${CONFIG_DIR}/hostcustomproperties.conf"
 
-    installLog "Setting host properties to '${HOST_PROPS}' at ${hostPropsFile}"
-    echo -n "${HOST_PROPS}" > "${hostPropsFile}"
+    installLog "Setting host properties to '${CFG_HOST_PROPS}' at ${hostPropsFile}"
+    echo -n "${CFG_HOST_PROPS}" > "${hostPropsFile}"
 }
 
 validateAgent() {
-    installLog "Validating the downloaded file..." 
+    installLog "Validating the downloaded file..."
     if [[ -e $1 ]]; then
         rm -f dt-root.cert.pem
         wget https://ca.dynatrace.com/dt-root.cert.pem
 
+        # Disabling the warning since it's better readable this way
+        # shellcheck disable=SC2181
         if [[ $? != 0 ]] || ! openssl -h &> /dev/null ; then
             installLog "WARNING: could not validate integrity of the download"
             return 2
         fi
 
+        # shellcheck disable=SC2086
         ( echo 'Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg="sha-256"; boundary="--SIGNED-INSTALLER"'; \
           echo ; echo ; echo '----SIGNED-INSTALLER' ; cat $1 ) \
         | openssl cms -verify -CAfile dt-root.cert.pem > /dev/null
 
+       # Disabling the warning since it's better readable this way
+       # shellcheck disable=SC2181
        if [[ $? != 0 ]]; then
            installLog "ERROR: Validation failed! An error occurred while trying to download the Dynatrace agent"
            return 1
@@ -188,7 +210,11 @@ downloadAgent() {
         sleep $retryTimeout
 
         installLog "Downloading agent installer from ${downloadUrl}"
-        $downloadCommand --header "Authorization: Api-Token $API_TOKEN" 2>&1 | tee -a "${LOG_FILE}"
+        if [[ -z "$CFG_DOWNLOADURL" ]]; then
+           $downloadCommand --header "Authorization: Api-Token $CFG_API_TOKEN" 2>&1 | tee -a "${LOG_FILE}"
+        else
+           $downloadCommand  2>&1 | tee -a "${LOG_FILE}"
+        fi
 
         if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             downloadErrors=$((downloadErrors+1))
@@ -199,7 +225,9 @@ downloadAgent() {
             fi
         else
             if [[ $validateDownload == true ]] && [[ -e $2 ]]; then
-                validateAgent $2
+                validateAgent "$2"
+                # Disabling the warning since it's better readable that way
+                # shellcheck disable=SC2181
                 if [[ $? -ne 0 ]]; then
                     installLog "Download validation failed!"
                 else
@@ -236,7 +264,10 @@ runInstaller() {
         pgrep -f Dynatrace-OneAgent > /dev/null
         local installerFound=$?
         if [[ $installerFound -eq 1 ]]; then
-            sh "${INSTALLER_FILE}" ${INSTALLERARGS} INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
+            # Disabling quoting check here, because $INSTALLERARGS would be
+            # handed over weirdly when quoted
+            # shellcheck disable=SC2086
+            sh "${INSTALLER_FILE}" $INSTALLERARGS INSTALL_PATH="$INSTALL_DIR" 2>&1 | tee -a "$LOG_FILE"
             if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
                 installLog "ERROR: Installation failed"
                 exit 1
@@ -267,7 +298,7 @@ setHostTags
 setHostProps
 
 INSTALLER_FILE="$TMPDIR/Dynatrace-OneAgent-Linux.sh"
-downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE" "$VALIDATEDOWNLOAD"
+downloadAgent "$DOWNLOADURL" "$INSTALLER_FILE" "$CFG_VALIDATEDOWNLOAD"
 
 runInstaller
 

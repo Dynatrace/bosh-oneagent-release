@@ -96,7 +96,7 @@ function setupSslAcceptAll {
     [System.Net.ServicePointManager]::CertificatePolicy = $trustAll
 }
 
-function downloadAgent() {
+function downloadAgent($downloadUrl) {
     $userAgent = "bosh/<%= spec.release.version %>"
     $retryTimeout = 0
     $downloadErrors = 0
@@ -111,13 +111,19 @@ function downloadAgent() {
         Start-Sleep -s $retryTimeout
 
         Try {
-            installLog "INFO" "Downloading Dynatrace agent from $cfgDownloadUrl to $installerFile"
-            
-            if($cfgProxy -ne "") {
-                installLog "INFO" "Proxy settings found, setting the proxy for the OneAgent download to $cfgProxy"
-                Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent -Proxy $cfgProxy -Header $authHeader
-            } else {
-                Invoke-WebRequest $cfgDownloadUrl -Outfile $installerFile -UserAgent $userAgent -Header $authHeader
+            installLog "INFO" "Downloading Dynatrace agent from $downloadUrl to $installerFile"
+
+            if ($cfgProxy -eq "" -And $cfgDownloadUrl -eq "") {
+                Invoke-WebRequest $downloadUrl -Outfile $installerFile -UserAgent $userAgent -Header $authHeader
+            }
+            elseif ($cfgProxy -eq "" -And $cfgDownloadUrl -ne "") {
+                Invoke-WebRequest $downloadUrl -Outfile $installerFile -UserAgent $userAgent
+            }
+            elseif ($cfgProxy -ne "" -And $cfgDownloadUrl -eq "") {
+                Invoke-WebRequest $downloadUrl -Outfile $installerFile -UserAgent $userAgent -Header $authHeader -Proxy $cfgProxy
+            }
+            elseif ($cfgProxy -ne "" -And $cfgDownloadUrl -ne "") {
+                Invoke-WebRequest $downloadUrl -Outfile $installerFile -UserAgent $userAgent -Proxy $cfgProxy
             }
 
             Break
@@ -200,7 +206,9 @@ if ($cfgDownloadUrl.length -eq 0){
         $cfgApiUrl = "http://{0}.live.dynatrace.com/api" -f $cfgEnvironmentId
     }
 
-    $cfgDownloadUrl = "{0}/v1/deployment/installer/agent/windows/default/latest" -f $cfgApiUrl
+    $downloadUrl = "{0}/v1/deployment/installer/agent/windows/default/latest" -f $cfgApiUrl
+} else {
+    $downloadUrl = $cfgDownloadUrl
 }
 
 updateTrustedSites
@@ -209,7 +217,7 @@ updateTrustedSites
 # do we really want to log these?
 installLog "INFO" "Using API URL $cfgApiUrl"
 
-downloadAgent
+downloadAgent $downloadUrl
 
 #run the installer
 try {
