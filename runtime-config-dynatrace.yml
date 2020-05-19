@@ -1,70 +1,52 @@
 releases:
 - name: dynatrace-oneagent
-  version: 1.1.0
+  version: 1.3.3
 
 addons:
 - name: dynatrace-oneagent-addon
   jobs:
   - name: dynatrace-oneagent
     release: dynatrace-oneagent
+    properties:
+      dynatrace:
+        environmentid: <environmentId>
+        apitoken: <paas-token> # sorry it's confusing :(
+        ###
+        # optional properties below
+        ###
+        # Replace with your Dynatrace Managed URL, including the environment ID.
+        # An example URL might look like the following
+        apiurl: https://{your-managed-cluster.com}/e/{environmentid}/api
+        # Set to 'all' if you want to accept all self-signed SSL certificates.
+        sslmode: all
+        # Specify a direct download URL for Dynatrace OneAgent.
+        # If this propery is set, BOSH will download OneAgent from this location.
+        downloadurl: https://direct-download-url-for-agent
+        # Specify the proxy to be used for communication.
+        proxy: https://your-proxy-url
+        # Specify in which hostgroup the VMs in this deployments belong
+        hostgroup: example_hostgroup
+        # Define host tags for the VMs in this deployment
+        hosttags: landscape=production team=my_team
+        # Define custom properties for the VMs in this deployment
+        hostprops: Department=Acceptance Stage=Sprint
+        # Enable cloud infrastructure monitoring mode.
+        # Set this to 1 to activate it
+        infraonly: 0
+        # Enable validation of the download via certificate
+        # Set this to true to active it
+        validatedownload: false
+        # Hand over any installer argument
+        # Use either this OR the hostgroup, hosttags, infraonly, proxy properties.
+        # Usage of 'installerargs' will overwrite the others!
+        installerargs: HOST_GROUP=example_hostgroup INFRA_ONLY=0
   include:
     deployments:
       - name-of-your-deployment
     stemcell:
       - os: ubuntu-trusty
   exclude:
-    # for bosh versions upwards of v262.8.0 you can use:
     lifecycle: errand
-    # for older bosh versions, you need to exclude errands/smoke-tests manually.
-    # Uncomment the "jobs" block for that and add additional jobs as needed:
-    #jobs:
-    #- {name: smoke-tests, release: cf}
-    #- {name: push-apps-manager, release: push-apps-manager-release}
-    #- {name: deploy-notifications, release: notifications}
-    #- {name: deploy-notifications-ui, release: notifications-ui}
-    #- {name: push-pivotal-account, release: pivotal-account}
-    #- {name: deploy-autoscaling, release: cf-autoscaling}
-    #- {name: register-broker, release: cf-autoscaling}
-    #- {name: nfsbrokerpush, release: nfs-volume}
-    #- {name: bootstrap, release: cf-mysql}
-    #- {name: rejoin-unsafe, release: cf-mysql}
-    #- {name: broker-registrar, release: cf-mysql}
-    #- {name: deregister-and-purge-instances, release: cf-mysql}
-    #- {name: smoke-tests, release: cf-mysql}
-    #- {name: install-hwc-buildpack, release: hwc-buildpack}
-  properties:
-    dynatrace:
-      environmentid: <environmentId>
-      apitoken: <paas-token> # sorry it's confusing :(
-      ###
-      # optional properties below
-      ###
-      # Replace with your Dynatrace Managed URL, including the environment ID.
-      # An example URL might look like the following
-      apiurl: https://{your-managed-cluster.com}/e/{environmentid}/api
-      # Set to 'all' if you want to accept all self-signed SSL certificates.
-      sslmode: all
-      # Specify a direct download URL for Dynatrace OneAgent.
-      # If this propery is set, BOSH will download OneAgent from this location.
-      downloadurl: https://direct-download-url-for-agent
-      # Specify the proxy to be used for communication.
-      proxy: https://your-proxy-url
-      # Specify in which hostgroup the VMs in this deployments belong
-      hostgroup: example_hostgroup
-      # Define host tags for the VMs in this deployment
-      hosttags: landscape=production team=my_team
-      # Define custom properties for the VMs in this deployment
-      hostprops: Department=Acceptance Stage=Sprint
-      # Enable cloud infrastructure monitoring mode.
-      # Set this to 1 to activate it
-      infraonly: 0
-      # Enable validation of the download via certificate
-      # Set this to true to active it
-      validatedownload: false
-      # Hand over any installer argument
-      # Use either this OR the hostgroup, hosttags, infraonly, proxy properties.
-      # Usage of 'installerargs' will overwrite the others!
-      installerargs: HOST_GROUP=example_hostgroup INFRA_ONLY=0
 
 
 # optional: extra addon configuration for Windows cells
@@ -72,15 +54,15 @@ addons:
   jobs:
   - name: dynatrace-oneagent-windows
     release: dynatrace-oneagent
-  include:
+    properties:
+      dynatrace:
+        environmentid: <environmentId>
+        apitoken: <paas-token>  # sorry it's confusing :(
+        # All of the optional properties for the Linux addon shown above (for example, apiurl, hostgroup) can also be used here.  include:
     deployments:
       - name-of-your-deployment
     stemcell:
       - os: windows2012R2
   exclude:
     lifecycle: errand
-  properties:
-    dynatrace:
-      environmentid: <environmentId>
-      apitoken: <paas-token>  # sorry it's confusing :(
-      # All of the optional properties for the Linux addon shown above (for example, apiurl, hostgroup) can also be used here.
+

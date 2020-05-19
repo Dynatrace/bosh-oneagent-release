@@ -2,6 +2,7 @@
 
 INSTALL_DIR="/var/vcap/data/dynatrace/oneagent"
 
+# shellcheck source=jobs/dynatrace-oneagent/templates/service.sh
 source "$(dirname "${BASH_SOURCE[0]}")/service.sh"
 
 if [[ ! -d "${INSTALL_DIR}" ]]; then

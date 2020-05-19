@@ -31,17 +31,17 @@ describe 'dynatrace release', :linux do
         it 'render' do
           script = template.render(manifest, spec: release_version)
 
-          expect(script).to match('^export DOWNLOADURL=""$')
-          expect(script).to match('^export PROXY=""$')
-          expect(script).to match('^export ENV_ID="environmentid"$')
-          expect(script).to match('^export API_TOKEN="apitoken"$')
-          expect(script).to match('^export API_URL=""$')
-          expect(script).to match('^export SSL_MODE=""$')
-          expect(script).to match('^export APP_LOG_CONTENT_ACCESS="1"$')
-          expect(script).to match('^export HOST_GROUP=""$')
-          expect(script).to match('^export HOST_TAGS=""$')
-          expect(script).to match('^export HOST_PROPS=" BOSHReleaseVersion=123"$')
-          expect(script).to match('^export INFRA_ONLY="0"$')
+          expect(script).to match('^export CFG_DOWNLOADURL=""$')
+          expect(script).to match('^export CFG_PROXY=""$')
+          expect(script).to match('^export CFG_ENV_ID="environmentid"$')
+          expect(script).to match('^export CFG_API_TOKEN="apitoken"$')
+          expect(script).to match('^export CFG_API_URL=""$')
+          expect(script).to match('^export CFG_SSL_MODE=""$')
+          expect(script).to match('^export CFG_APP_LOG_CONTENT_ACCESS="1"$')
+          expect(script).to match('^export CFG_HOST_GROUP=""$')
+          expect(script).to match('^export CFG_HOST_TAGS=""$')
+          expect(script).to match('^export CFG_HOST_PROPS=" BOSHReleaseVersion=123"$')
+          expect(script).to match('^export CFG_INFRA_ONLY="0"$')
         end
       end
 

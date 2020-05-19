@@ -23,6 +23,8 @@ fi
 if [[ -f "${agentDir}/agent/uninstall.sh" ]]; then
     installLog "Found uninstall script to run..."
     sh "${agentDir}/agent/uninstall.sh" >> "${DRAIN_LOG}" 2>&1
+    # Disabling the warning since it's better readable that way
+    # shellcheck disable=SC2181
     if [[ $? -ne 0 ]]; then
         installLog "ERROR: Uninstall script failed!"
         echo "1"
