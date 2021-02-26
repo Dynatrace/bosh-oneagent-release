@@ -227,17 +227,17 @@ try {
     if ($cfgInstallerArgs -eq "") {
         if ($cfgHostGroup -ne "") {
             installLog "INFO" "Setting host group to $cfgHostGroup"
-            $commandArguments += " HOST_GROUP=$cfgHostGroup"
+            $commandArguments += " --set-host-group=$cfgHostGroup"
         }
 
         if ($cfgInfraOnly -eq "1") {
             installLog "INFO" "Enabling Infra-Only mode"
-            $commandArguments += " INFRA_ONLY=$cfgInfraOnly"
+            $commandArguments += " --set-infra-only=$cfgInfraOnly"
         }
 
         if ($cfgProxy -ne "") {
             installLog "INFO" "Setting proxy to $cfgProxy"
-            $commandArguments += " PROXY=$cfgProxy"
+            $commandArguments += " --set-proxy=$cfgProxy"
         }
     }
     else {
@@ -246,7 +246,7 @@ try {
         }
         else {
             installLog "INFO" "Enabling log monitoring"
-            $commandArguments += " APP_LOG_CONTENT_ACCESS=1 $cfgInstallerArgs "
+            $commandArguments += " --set-app-log-content-access=1 $cfgInstallerArgs "
         }
     }
 
