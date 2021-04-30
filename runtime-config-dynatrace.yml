@@ -58,7 +58,8 @@ addons:
       dynatrace:
         environmentid: <environmentId>
         apitoken: <paas-token>  # sorry it's confusing :(
-        # All of the optional properties for the Linux addon shown above (for example, apiurl, hostgroup) can also be used here.  include:
+        # All of the optional properties for the Linux addon shown above (for example, apiurl, hostgroup) can also be used here.  
+  include:
     deployments:
       - name-of-your-deployment
     stemcell:
