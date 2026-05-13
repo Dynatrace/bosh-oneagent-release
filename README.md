@@ -1,3 +1,7 @@
+⚠️ This repository has been archived and is no longer maintained.
+The code is available for historical reference or archival purposes.
+
+
 [![CircleCI](https://circleci.com/gh/Dynatrace/bosh-oneagent-release.svg?style=svg)](https://circleci.com/gh/Dynatrace/bosh-oneagent-release)
 
 # Dynatrace OneAgent BOSH Release
