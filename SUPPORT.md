@@ -2,15 +2,11 @@
 
 ## Support model
 
-Maintained by the owning team for internal or strategic use.
+This repository is maintained by the KITE team at Dynatrace.
 
 ## How to get help
 
-Please use GitHub Issues for:
-
-- bug reports
-- feature requests
-- general questions related to this repository
+Reach the KITE team on Slack: [#team-kite](https://dynatrace.enterprise.slack.com/archives/C01SZRDN31Q)
 
 If you believe you have found a security issue, do not file a public issue. Follow the instructions in `SECURITY.md`.
 
