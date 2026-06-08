@@ -2,7 +2,7 @@ FROM ubuntu:14.04
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get -y install curl ca-certificates gnupg2 build-essential dos2unix --no-install-recommends && \
+    apt-get -y install curl openssl ca-certificates gnupg2 build-essential dos2unix --no-install-recommends && \
     apt-get clean
 
 # Instructions from https://rvm.io/rvm/install
