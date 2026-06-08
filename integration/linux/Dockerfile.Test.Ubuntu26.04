@@ -21,6 +21,6 @@ RUN find jobs/ spec/jobs/ -type f -name '*' | xargs dos2unix
 
 # Override /bin/systemctl - the Docker container doesn't start under Systemd, so calls to systemctl fail.
 # We don't really need systemctl, so this is enough as a workaround.
-RUN echo "#!/bin/sh\nexit 0" > /bin/systemctl
+RUN printf '#!/bin/sh\nexit 0\n' > /bin/systemctl && chmod +x /bin/systemctl
 
 ENTRYPOINT bundle exec rspec --tag linux --format documentation
