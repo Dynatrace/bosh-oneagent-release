@@ -7,5 +7,5 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Run integration tests on Ubuntu 14.04 and Ubuntu 16.04 containers
+          name: Run integration tests on Ubuntu 24.04 and Ubuntu 26.04 containers
           command: ./integration/linux/run-tests.sh
