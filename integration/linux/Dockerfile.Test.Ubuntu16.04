@@ -4,7 +4,7 @@ FROM ubuntu:16.04
 RUN apt-get update && \
     apt-get -y install ruby dos2unix curl --no-install-recommends && \
     apt-get clean && \
-    gem install bundler
+    gem install bundler -v 2.3.27
 
 WORKDIR /tmp/workspace
 
