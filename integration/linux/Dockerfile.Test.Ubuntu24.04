@@ -1,15 +1,15 @@
-FROM ubuntu:14.04
+FROM ubuntu:24.04
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get -y install curl ca-certificates gnupg2 build-essential dos2unix --no-install-recommends && \
+    apt-get -y install curl openssl ca-certificates gnupg2 build-essential dos2unix --no-install-recommends && \
     apt-get clean
 
 # Instructions from https://rvm.io/rvm/install
 RUN curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 RUN curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
 RUN curl -sSL https://get.rvm.io | bash -s stable
-RUN /bin/bash -c '. /etc/profile.d/rvm.sh && rvm install 2.3 && gem install bundler'
+RUN /bin/bash -c '. /etc/profile.d/rvm.sh && rvm install 3.3.0 && gem install bundler'
 
 WORKDIR /tmp/workspace
 

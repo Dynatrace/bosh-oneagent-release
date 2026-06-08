@@ -11,6 +11,8 @@ blobs
 .final_builds/packages/**/*.tgz
 releases/**/*.tgz
 .DS_Store
+vendor/
+.bundle/
 tmp
 *.swp
 *.tgz
