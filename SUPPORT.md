@@ -2,11 +2,12 @@
 
 ## Support model
 
-This repository is maintained by the KITE team at Dynatrace.
+This repository is maintained by the KITE team at Dynatrace. 
 
-## How to get help
+## Reporting Issues or Ideas
 
-Reach the KITE team on Slack: [#team-kite](https://dynatrace.enterprise.slack.com/archives/C01SZRDN31Q)
+If you find a bug or security issue, please report it to Dynatrace support by [creating a ticket](https://support.dynatrace.com/).
+If you have an idea or feature request, please join our [Dynatrace Community](https://community.dynatrace.com) and create a post.
 
 ## Commercial support
 
