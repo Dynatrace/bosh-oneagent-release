@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 # Install dependencies
 RUN apt-get update && \
     apt-get -y install ruby dos2unix curl --no-install-recommends && \
-    apt-get clean && 
+    apt-get clean
 
 # Instructions from https://rvm.io/rvm/install
 RUN curl -sSL https://rvm.io/mpapis.asc | gpg --import -
