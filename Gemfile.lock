@@ -1,0 +1,34 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bosh-template (2.4.0)
+      semi_semantic (~> 1.2.0)
+    diff-lcs (1.6.2)
+    rspec (3.13.2)
+      rspec-core (~> 3.13.0)
+      rspec-expectations (~> 3.13.0)
+      rspec-mocks (~> 3.13.0)
+    rspec-bash (0.3.0)
+      sparsify (~> 1.1)
+    rspec-core (3.13.6)
+      rspec-support (~> 3.13.0)
+    rspec-expectations (3.13.5)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-mocks (3.13.8)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-support (3.13.7)
+    semi_semantic (1.2.0)
+    sparsify (1.1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bosh-template (~> 2.4)
+  rspec
+  rspec-bash
+
+BUNDLED WITH
+   2.3.27

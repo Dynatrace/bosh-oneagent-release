@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:22.04
 
 # Install dependencies
 RUN apt-get update && \
@@ -9,12 +9,12 @@ RUN apt-get update && \
 RUN curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 RUN curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
 RUN curl -sSL https://get.rvm.io | bash -s stable
-RUN /bin/bash -c '. /etc/profile.d/rvm.sh && rvm install 2.3 && gem install bundler -v 2.3.27'
+RUN /bin/bash -c '. /etc/profile.d/rvm.sh && rvm install 3.1 && gem install bundler -v 2.3.27'
 
 WORKDIR /tmp/workspace
 
 # Install Ruby dependencies
-COPY Gemfile ./
+COPY Gemfile Gemfile.lock ./
 RUN /bin/bash -c '. /etc/profile.d/rvm.sh && bundle'
 
 # Copy scripts code and tests.
@@ -23,5 +23,9 @@ COPY spec/ ./spec/
 
 # Traverse through the directory and force line endings to Unix.
 RUN find jobs/ spec/jobs/ -type f -name '*' | xargs dos2unix
+
+# Override /bin/systemctl - the Docker container doesn't start under Systemd, so calls to systemctl fail.
+# We don't really need systemctl, so this is enough as a workaround.
+RUN echo "#!/bin/sh\nexit 0" > /bin/systemctl
 
 ENTRYPOINT /bin/bash -c '. /etc/profile.d/rvm.sh && bundle exec rspec --tag linux --format documentation'
