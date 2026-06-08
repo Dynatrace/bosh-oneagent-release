@@ -9,7 +9,7 @@ RUN apt-get update && \
 RUN curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 RUN curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
 RUN curl -sSL https://get.rvm.io | bash -s stable
-RUN /bin/bash -c '. /etc/profile.d/rvm.sh && rvm install 3.1.7 && gem install bundler'
+RUN /bin/bash -c '. /etc/profile.d/rvm.sh && rvm install 3.3.0 && gem install bundler'
 
 WORKDIR /tmp/workspace
 
