@@ -1,3 +1,4 @@
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Dynatrace/bosh-oneagent-release/badge)](https://scorecard.dev/viewer/?uri=github.com/Dynatrace/bosh-oneagent-release)
 
 [![CircleCI](https://circleci.com/gh/Dynatrace/bosh-oneagent-release.svg?style=svg)](https://circleci.com/gh/Dynatrace/bosh-oneagent-release)
 
